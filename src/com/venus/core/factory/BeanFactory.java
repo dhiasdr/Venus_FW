@@ -1,0 +1,452 @@
+package com.venus.core.factory;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+
+import com.venus.core.BeanConstructorArgument;
+import com.venus.core.BeanDefinition;
+import com.venus.core.BeanProperty;
+import com.venus.core.BeansDefinitionApplication;
+import com.venus.core.BehaviourMethodsInvoker;
+import com.venus.core.behaviour.BehaviourDestroy;
+import com.venus.exception.VenusBeanConfigurationNotFound;
+import com.venus.exception.VenusPropertyNotFound;
+
+public class BeanFactory implements IBeanFactory {
+	private final String PROTOYPE_SCOPE = "prototype";
+	private final String DEFAULT_TYPE = "java.lang.String";
+
+	private HashMap<String, Object> beans = new HashMap<>();
+
+	public BeanFactory() {
+		beansInstantiationResult();
+	}
+
+	@Override
+	public <T> T getBean(String name, Class<?> type) {
+		if (beans != null && beans.size() > 0) {
+			checkBeanForPrototypeScope(name);
+		}
+		Object bean = this.beans.get(name);
+		return (T) type.cast(bean);
+	}
+
+	@Override
+	public <T> T getBean(String name) {
+		if (beans != null && beans.size() > 0) {
+			checkBeanForPrototypeScope(name);
+		}
+		Object bean = this.beans.get(name);
+		return (T) bean;
+	}
+
+	@Override
+	public boolean beanExists(String name) {
+		if(this.beans.containsKey(name)) return true;
+		return false;
+	}
+
+	@Override
+	public boolean isSingleton(String name) {
+		for (Iterator<?> beansIterator = BeansDefinitionApplication
+				.getBeansDefinitionApplication().iterator(); beansIterator
+				.hasNext();) {
+			BeanDefinition beanDefinition = (BeanDefinition) beansIterator
+					.next();
+			if (beanDefinition.getId().equals(name) && beanDefinition.isSingleton()) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private void beansInstantiationResult() {
+		Object bean = null;
+		for (Iterator<?> beansIterator = BeansDefinitionApplication
+				.getBeansDefinitionApplication().iterator(); beansIterator
+				.hasNext();) {
+			BeanDefinition beanDefinition = (BeanDefinition) beansIterator
+					.next();
+			if (!beanDefinition.isInstanciated()) {
+				bean = instanciateObject(beanDefinition.getClassName(),
+						beanDefinition);
+				setBeanProperties(bean, beanDefinition);
+				BeansDefinitionApplication
+						.markBeanAsInstanciated(beanDefinition);
+				this.beans.put(beanDefinition.getId(), bean);
+			}
+		}
+	}
+
+	private void checkBeanForPrototypeScope(String prototypeBeanName) {
+		Object bean = null;
+		BeanDefinition relatedBeanDefinition = null;
+		for (Iterator<?> beansIterator = BeansDefinitionApplication
+				.getBeansDefinitionApplication().iterator(); beansIterator
+				.hasNext();) {
+			relatedBeanDefinition = (BeanDefinition) beansIterator.next();
+
+			if (relatedBeanDefinition.getId().equals(prototypeBeanName)) {
+				if ((relatedBeanDefinition.getScope() != null && relatedBeanDefinition
+						.getScope().equals(PROTOYPE_SCOPE))
+						|| !relatedBeanDefinition.isSingleton()) {
+					bean = instanciateObject(
+							relatedBeanDefinition.getClassName(),
+							relatedBeanDefinition);
+					setBeanPropertiesForProtoype(bean,
+							relatedBeanDefinition.getProperties());
+				}
+				break;
+			}
+		}
+
+		if (relatedBeanDefinition != null
+				&& ((relatedBeanDefinition.getScope() != null && relatedBeanDefinition
+						.getScope().equals(PROTOYPE_SCOPE)) || !relatedBeanDefinition
+						.isSingleton())) {
+			this.beans.put(prototypeBeanName, bean);
+			for (Iterator<?> beansIterator = BeansDefinitionApplication
+					.getBeansDefinitionApplication().iterator(); beansIterator
+					.hasNext();) {
+				BeanDefinition beanDefinition = (BeanDefinition) beansIterator
+						.next();
+				for (Iterator<?> beansPropertiesIterator = beanDefinition
+						.getProperties().iterator(); beansPropertiesIterator
+						.hasNext();) {
+					BeanProperty beanProperty = (BeanProperty) beansPropertiesIterator
+							.next();
+					if (beanProperty.getName().equals(prototypeBeanName)) {
+						Object referencerBean = this.beans.get(beanDefinition
+								.getId());
+						try {
+							setProperty(referencerBean, bean, prototypeBeanName);
+							this.beans.put(beanDefinition.getId(),
+									referencerBean);
+						} catch (VenusPropertyNotFound e) {
+							e.printStackTrace();
+						}
+					}
+
+				}
+			}
+		}
+
+	}
+
+	private void setBeanPropertiesForProtoype(Object bean,
+			ArrayList<BeanProperty> properties) {
+		for (Iterator<?> beanPropertiesIt = properties.iterator(); beanPropertiesIt
+				.hasNext();) {
+			BeanProperty beanProperty = (BeanProperty) beanPropertiesIt.next();
+			if (beanProperty.getRef() != null) {
+				try {
+					Object referencedBean = this.beans.get(beanProperty
+							.getRef());
+					setProperty(bean, referencedBean, beanProperty.getName());
+				} catch (VenusPropertyNotFound e) {
+					e.printStackTrace();
+				}
+			}
+			setUpSimpleProperties(bean, beanProperty);
+		}
+	}
+
+	private void setBeanProperties(Object bean, BeanDefinition beanDef) {
+		for (Iterator<?> beanPropertiesIt = beanDef.getProperties().iterator(); beanPropertiesIt
+				.hasNext();) {
+			BeanProperty beanProperty = (BeanProperty) beanPropertiesIt.next();
+			if (beanProperty.getRef() != null) {
+				try {
+					BeanDefinition beanDefinition = findBeanDefinitionByPropertyReference(beanProperty
+							.getRef());
+					if (beanDefinition != null) {
+						Object referencedBean = instanciateObject(
+								beanDefinition.getClassName(), beanDefinition);
+						setProperty(bean, referencedBean,
+								beanProperty.getName());
+						this.beans.put(beanDefinition.getId(), referencedBean);
+						BeansDefinitionApplication
+								.markBeanAsInstanciated(beanDefinition);
+						setBeanProperties(referencedBean,beanDefinition);
+					} else {
+						throw new VenusBeanConfigurationNotFound("Bean "
+								+ beanProperty.getRef()
+								+ " not found in Configuration file");
+					}
+
+				} catch (VenusBeanConfigurationNotFound | VenusPropertyNotFound e) {
+					e.printStackTrace();
+				}
+			}
+			setUpSimpleProperties(bean, beanProperty);
+		}
+		BehaviourMethodsInvoker.invokeFor(bean, beanDef.getId(), beans.get(
+				BeansDefinitionApplication.getPostProcessorBeanName()), beanDef.getInitMethod());
+
+	}
+
+	private void setUpSimpleProperties(Object bean, BeanProperty beanProperty) {
+		if (beanProperty.getValue() != null) {
+			String propertyType;
+			if (beanProperty.getType() != null) {
+				propertyType = beanProperty.getType();
+			} else {
+				Class<?> cls = findPropertyDeclarationClass(bean,
+						beanProperty.getName());
+				propertyType = cls.getName();
+			}
+			Object object;
+			if (isPrimitive(propertyType)) {
+				object = getPropertyValueWithPrmTypes(propertyType,
+						beanProperty.getValue());
+			} else {
+				object = instanciateObject(propertyType, null);
+				object = beanProperty.getValue();
+			}
+			try {
+				setProperty(bean, object, beanProperty.getName());
+			} catch (VenusPropertyNotFound e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	private Object instanciateObject(String className,
+			BeanDefinition beanDefinition) {
+		Object object = null;
+		try {
+			if (beanDefinition != null
+					&& beanDefinition.getConstructorArguments() != null
+					&& beanDefinition.getConstructorArguments().size() > 0) {
+
+				Class[] paramCls = new Class<?>[beanDefinition
+						.getConstructorArguments().size()];
+				ArrayList<Object> paramValues = new ArrayList<>();
+				for (int i = 0; i < beanDefinition.getConstructorArguments()
+						.toArray().length; i++) {
+					BeanConstructorArgument constructorArgument = (BeanConstructorArgument) beanDefinition
+							.getConstructorArguments().toArray()[i];
+					Object paramObject = null;
+					if (constructorArgument.getType() == null
+							|| (constructorArgument.getType() != null && !isPrimitive(constructorArgument
+									.getType()))) {
+						paramCls[i] = Class.forName((constructorArgument
+								.getType() == null) ? DEFAULT_TYPE
+								: constructorArgument.getType());
+						paramObject = instanciateObject(
+								(constructorArgument.getType() == null) ? DEFAULT_TYPE
+										: constructorArgument.getType(), null);
+						paramObject = constructorArgument.getValue();
+					} else {
+						paramCls[i] = getParamsClass(constructorArgument
+								.getType());
+						paramObject = getPropertyValueWithPrmTypes(
+								constructorArgument.getType(),
+								constructorArgument.getValue());
+					}
+					paramValues.add(paramObject);
+				}
+				if (beanDefinition.getFactoryMethod() != null) {
+					object= getObjectFromFactory(beanDefinition, paramCls,paramValues);
+				}
+				else{
+				object = Class.forName(className).getConstructor(paramCls)
+						.newInstance(paramValues.toArray());
+				}
+
+			} else {
+				if (beanDefinition != null
+						&& beanDefinition.getFactoryMethod() != null) {
+					object = getObjectFromFactory(beanDefinition, null, null);
+				} else
+					object = Class.forName(className).getConstructor()
+							.newInstance();
+
+			}
+
+		} catch (SecurityException | InstantiationException
+				| IllegalAccessException | IllegalArgumentException
+				| InvocationTargetException | NoSuchMethodException
+				| ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+		return object;
+	}
+	private Object getObjectFromFactory(BeanDefinition beanDefinition,Class[] paramCls, ArrayList<Object> paramValues ){
+		Object object=null;
+		try {
+				if (beanDefinition.getFactoryBean() != null) {
+					if (beanExists(beanDefinition.getFactoryBean())) {
+						Object factoryBean = this.beans.get(beanDefinition
+								.getFactoryBean());
+						Class<?> factoryClass = factoryBean.getClass();
+						Method setter;
+						if(paramCls!=null){
+							 setter = factoryClass.getMethod(
+									beanDefinition.getFactoryMethod(), paramCls);
+								object = setter.invoke(factoryBean, paramValues);
+
+						}
+						else{
+							 setter = factoryClass.getMethod(beanDefinition.getFactoryMethod());
+							 object = setter.invoke(factoryBean);
+						}
+					}
+				} else {
+					Class<?> factoryClass = Class.forName(beanDefinition
+							.getClassName());
+					Method setter;
+					if(paramCls!=null){
+						 setter = factoryClass.getMethod(
+								beanDefinition.getFactoryMethod(), paramCls);
+							object = setter.invoke(null, paramValues);
+
+					}
+					else{
+						 setter = factoryClass.getMethod(beanDefinition.getFactoryMethod());
+							object = setter.invoke(null);
+
+					}
+
+				}
+
+		} catch (NoSuchMethodException | SecurityException
+				| ClassNotFoundException | IllegalAccessException
+				| IllegalArgumentException | InvocationTargetException e) {
+			e.printStackTrace();
+		}
+		return object;
+				
+	}
+
+	private void setProperty(Object mainObject, Object property,
+			String propertyName) throws VenusPropertyNotFound {
+		if (findPropertyDeclarationClass(mainObject, propertyName) != null) {
+			try {
+				Method setter = mainObject.getClass().getMethod(
+						"set"
+								+ propertyName.replaceFirst(propertyName
+										.substring(0, 1), propertyName
+										.substring(0, 1).toUpperCase()),
+						new Class[] { findPropertyDeclarationClass(mainObject,
+								propertyName)});
+				setter.invoke(mainObject, new Object[] { property });
+			} catch (NoSuchMethodException | SecurityException
+					| IllegalAccessException | IllegalArgumentException
+					| InvocationTargetException e) {
+				e.printStackTrace();
+			}
+
+		} else {
+			throw new VenusPropertyNotFound("Field " + propertyName
+					+ " not found in Class: " + mainObject.getClass().getName());
+		}
+	}
+
+	private Class<?> findPropertyDeclarationClass(Object mainObject,
+			String propertyName) {
+		Class<?> cls = null;
+		for (Iterator<?> classFieldsIt = Arrays.asList(
+				mainObject.getClass().getDeclaredFields()).iterator(); classFieldsIt
+				.hasNext();) {
+			Field field = (Field) classFieldsIt.next();
+			if (field.getName().equals(propertyName)) {
+				cls = field.getType();
+				break;
+			}
+		}
+		return cls;
+	}
+
+	private BeanDefinition findBeanDefinitionByPropertyReference(
+			String reference) {
+		for (Iterator<?> beansDefIterator = BeansDefinitionApplication
+				.getBeansDefinitionApplication().iterator(); beansDefIterator
+				.hasNext();) {
+			BeanDefinition beanDef = (BeanDefinition) beansDefIterator.next();
+			if (beanDef.getId().equals(reference)) {
+				return beanDef;
+			}
+		}
+		return null;
+	}
+
+	private boolean isPrimitive(String type) {
+		if (type.equals("boolean") || type.equals("byte")
+				|| type.equals("short") || type.equals("int")
+				|| type.equals("long") || type.equals("float")
+				|| type.equals("double") || type.equals("char")) {
+			return true;
+		}
+		return false;
+	}
+
+	private Object getPropertyValueWithPrmTypes(String type, String value) {
+		switch (type) {
+		case "boolean":
+			return Boolean.parseBoolean(value);
+		case "byte":
+			return Byte.parseByte(value);
+		case "short":
+			return Short.parseShort(value);
+		case "int":
+			return Integer.parseInt(value);
+		case "long":
+			return Long.parseLong(value);
+		case "float":
+			return Float.parseFloat(value);
+		case "double":
+			return Double.parseDouble(value);
+		case "char":
+			char pValue = value.charAt(0);
+			return pValue;
+		default:
+			return value;
+		}
+	}
+
+	private Class<?> getParamsClass(String type) {
+		switch (type) {
+		case "boolean":
+			return boolean.class;
+		case "byte":
+			return byte.class;
+		case "short":
+			return short.class;
+		case "int":
+			return int.class;
+		case "long":
+			return long.class;
+		case "float":
+			return float.class;
+		case "double":
+			return double.class;
+		case "char":
+			return char.class;
+		default:
+			return String.class;
+		}
+	}
+    public void destroyBeans() {
+    	BeansDefinitionApplication.getBeansDefinitionApplication()
+    	.stream().filter(beanDef->{
+			try {
+			return Arrays.asList(Class.forName(beanDef.getClassName()).getInterfaces()).contains(BehaviourDestroy.class)||
+						beanDef.getDestroyMethod()!=null;
+			} catch (ClassNotFoundException e) {
+				e.printStackTrace();
+			}
+			return false;
+		})
+    	.forEach(beanDef->{
+    		BehaviourMethodsInvoker.invokeOnShutDownContainerFor(this.beans.get(beanDef.getId()), beanDef.getId(), beanDef.getDestroyMethod());
+    	});
+    	this.beans.clear();
+    }
+
+}
