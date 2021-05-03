@@ -14,7 +14,7 @@ public class BeanDefinition {
 	private String factoryMethod;
 	private String initMethod;
 	private String destroyMethod;
-    private boolean instanciated;
+    private boolean instantiated;
 	public BeanDefinition() {
 	}
 
@@ -83,12 +83,12 @@ public class BeanDefinition {
 		this.factoryMethod = factoryMethod;
 	}
 
-	public boolean isInstanciated() {
-		return instanciated;
+	public boolean isInstantiated() {
+		return instantiated;
 	}
 
-	public void setInstanciated(boolean instanciated) {
-		this.instanciated = instanciated;
+	public void setInstantiated(boolean instantiated) {
+		this.instantiated = instantiated;
 	}
 
 	public String getInitMethod() {

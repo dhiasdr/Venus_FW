@@ -16,59 +16,80 @@ public class BeansDefinitionApplication {
 	private static String beansConfigurationFileName;
 	private static ArrayList<BeanDefinition> beansDefinition;
 	private static String postProcessorBeanName;
-	public static void configureBeansApplicationByConfiguration(String configurationFileName){
-		beansConfigurationFileName =configurationFileName;
-		configureBeans();
+
+	/**
+	 * Calls the method createBeansByConfiguration() to build all the beans
+	 * definition
+	 * 
+	 * @param configurationFileName the beans configuration file's name
+	 */
+	public static void createBeansApplicationByConfiguration(String configurationFileName) {
+		beansConfigurationFileName = configurationFileName;
+		createBeansByConfiguration();
 	}
-	public static ArrayList<BeanDefinition> getBeansDefinitionApplication(){
-		//for now
-		if(beansDefinition==null)configureBeans();
+
+	/**
+	 * Returns all the beans definition for all beans configured in the file
+	 * 
+	 * @return list of beans definition
+	 */
+	public static ArrayList<BeanDefinition> getBeansDefinitionApplication() {
+		// for now
+		if (beansDefinition == null)
+			createBeansByConfiguration();
 		return beansDefinition;
 	}
-	private static void configureBeans(){
+
+	private static void createBeansByConfiguration() {
 		try {
-			beansDefinition = BeansUtility
-					.parseBeanConfigurationXML(beansConfigurationFileName);
+			beansDefinition = BeansUtility.parseBeanConfigurationXML(beansConfigurationFileName);
 			prioritizeFactoriesBeans();
-		} catch (ParserConfigurationException | SAXException | IOException
-				| VenusConfigurationException e) {
+		} catch (ParserConfigurationException | SAXException | IOException | VenusConfigurationException e) {
 			e.printStackTrace();
 		}
 	}
-	public static void markBeanAsInstanciated(BeanDefinition beanDefinition){
-		beanDefinition.setInstanciated(true);
+
+	/**
+	 * Changes the value of instantiated to true for the bean definition passed in
+	 * parameter
+	 * 
+	 * @param beanDefinition the bean definition to be marked as instantiated
+	 */
+	public static void markBeanAsInstantiated(BeanDefinition beanDefinition) {
+		beanDefinition.setInstantiated(true);
 		int index = beansDefinition.indexOf(beanDefinition);
 		beansDefinition.set(index, beanDefinition);
 	}
-	private static void prioritizeFactoriesBeans(){
+
+	private static void prioritizeFactoriesBeans() {
 		ArrayList<String> priortizedBeansName = new ArrayList<>();
 		ArrayList<BeanDefinition> priortizedBeans = new ArrayList<>();
-		for(Iterator<?> beansDefinitionItr= beansDefinition.iterator(); beansDefinitionItr.hasNext();){
+		for (Iterator<?> beansDefinitionItr = beansDefinition.iterator(); beansDefinitionItr.hasNext();) {
 			BeanDefinition beanDefinition = (BeanDefinition) beansDefinitionItr.next();
-			if(isPostProcessorBean(beanDefinition)) {
-				postProcessorBeanName=beanDefinition.getId();
+			if (isPostProcessorBean(beanDefinition)) {
+				postProcessorBeanName = beanDefinition.getId();
 				priortizedBeans.add(beanDefinition);
 				break;
 			}
 		}
-		for(Iterator<?> beansDefinitionItr= beansDefinition.iterator(); beansDefinitionItr.hasNext();){
+		for (Iterator<?> beansDefinitionItr = beansDefinition.iterator(); beansDefinitionItr.hasNext();) {
 			BeanDefinition beanDefinition = (BeanDefinition) beansDefinitionItr.next();
-			if(beanDefinition.getFactoryBean()!=null){
+			if (beanDefinition.getFactoryBean() != null) {
 				priortizedBeansName.add(beanDefinition.getFactoryBean());
 			}
 		}
-		for(Iterator<?> beansDefinitionItr= beansDefinition.iterator(); beansDefinitionItr.hasNext();){
+		for (Iterator<?> beansDefinitionItr = beansDefinition.iterator(); beansDefinitionItr.hasNext();) {
 			BeanDefinition beanDefinition = (BeanDefinition) beansDefinitionItr.next();
-			if(priortizedBeansName.contains(beanDefinition.getId())){
+			if (priortizedBeansName.contains(beanDefinition.getId())) {
 				priortizedBeans.add(beanDefinition);
 			}
 		}
-		if(priortizedBeans.size()>0) {
+		if (priortizedBeans.size() > 0) {
 			beansDefinition.removeAll(priortizedBeans);
 			priortizedBeans.addAll(beansDefinition);
 			beansDefinition = priortizedBeans;
 		}
-		
+
 	}
 
 	private static boolean isPostProcessorBean(BeanDefinition beanDef) {
@@ -83,6 +104,12 @@ public class BeansDefinitionApplication {
 
 		return false;
 	}
+
+	/**
+	 * Returns the postProcessor bean's name existing in the container
+	 * 
+	 * @return the name of postProcessor bean
+	 */
 	public static String getPostProcessorBeanName() {
 		return postProcessorBeanName;
 	}

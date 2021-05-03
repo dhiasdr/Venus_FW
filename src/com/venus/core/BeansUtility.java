@@ -37,6 +37,13 @@ public class BeansUtility {
 			throw new VenusConfigurationException(e);
 		}
 	}
+	/**
+	 * Checks the XML configuration file and builds all the beans definition by mapping all the configured
+	 * data to beans definition instances
+	 * 
+	 * @param fileName the beans configuration file's name
+	 * @return list of all beans definition
+	 */
 	public static ArrayList<BeanDefinition> parseBeanConfigurationXML(String fileName) throws ParserConfigurationException, SAXException,
 	IOException, VenusConfigurationException{
 		ValidateBeanConfigurationXML(fileName);

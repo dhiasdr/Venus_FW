@@ -11,6 +11,18 @@ import com.venus.core.behaviour.BehaviourInit;
 import com.venus.core.behaviour.BehaviourPostProcessors;
 
 public class BehaviourMethodsInvoker {
+
+	/**
+	 * Checks the life cycle of the object passed as a parameter before being ready
+	 * for use by invoking the behavior interfaces if they are implemented by this
+	 * object and the init-method also if it has been configured and mapped to the
+	 * bean definition
+	 * 
+	 * @param bean              object to be treated
+	 * @param beanName          bean's name
+	 * @param postProcessorBean postProcessorBean object
+	 * @param initMethodName    init-method's name of the related bean
+	 */
 	public static void invokeFor(Object bean, String beanName, Object postProcessorBean, String initMethodName) {
 		Class<?>[] postProcessorParameterTypes = { Object.class, String.class };
 		Object[] postProcessorParameterValues = { bean, beanName };
@@ -65,6 +77,17 @@ public class BehaviourMethodsInvoker {
 		}
 
 	}
+
+	/**
+	 * Checks the life cycle of the object passed as a parameter before destroying
+	 * all the beans by invoking the behavior interface(BehaviourDestroy)'s method
+	 * if it's implemented by this object and the destroy-method also if it has been
+	 * configured and mapped to the bean definition
+	 * 
+	 * @param bean              object to be treated
+	 * @param beanName          bean's name
+	 * @param destroyMethodName destroy-method's name of the related bean
+	 */
 	public static void invokeOnShutDownContainerFor(Object bean, String beanName, String destroyMethodName) {
 		List<Class<?>> interfaces = Arrays.asList(bean.getClass().getInterfaces());
 		Method method;

@@ -2,6 +2,7 @@ package com.venus.test;
 
 import com.venus.core.ApplicationContext;
 import com.venus.core.ApplicationContextXMLConfiguration;
+import com.venus.test.dao.ClassA;
 import com.venus.test.dao.ClassB;
 import com.venus.test.dao.IClassA;
 import com.venus.test.dao.IObjectDAO;
@@ -21,20 +22,20 @@ public class Test {
 				"BeansConfiguration.xml");
         //Test-Prototype
 
-		//IClassA classA = context.getBean("classA", ClassA.class);
-		/*((ClassA) classA).setName("classA");
+		IClassA classA = context.getBean("classA", ClassA.class);
+		((ClassA) classA).setName("classA");
 		System.out.println("Hello object (helloA)" + "Your name is: "
-				+ ((ClassA) classA).getName());*/
-		//IClassA classB = context.getBean("classA", ClassA.class);
-		/*((ClassA) classB).setName("classB");
+				+ ((ClassA) classA).getName());
+		IClassA classB = context.getBean("classA", ClassA.class);
+		((ClassA) classB).setName("classB");
 		System.out.println("Hello object (helloB)" + "Your name is: "
-				+ ((ClassA) classB).getName());*/
-		/*System.out.println("'classA' and 'classB'" + "are referring "
+				+ ((ClassA) classB).getName());
+		System.out.println("'classA' and 'classB'" + "are referring "
 				+ "to the same object: " + (classA == classB));
 
 		System.out.println("Address of object classA: " + classA);
 		System.out.println("Address of object classB: " + classB);
-		System.out.println("----------------------- ");*/
+		System.out.println("----------------------- ");
 
         //Test-Singleton
 		ObjectServiceImpl obj1 = context.getBean("objectService",
@@ -66,9 +67,12 @@ public class Test {
 		System.out.println("test daoFactory");
 		daoImpl.work();
         System.out.println("-------------------------------");
-		IClassA classA = context.getBean("classA");
+		IClassA classA7 = context.getBean("classA");
+		IClassA classA1 = context.getBean("classA");
+		System.out.println(classA7+" ---"+classA1+"====>"+classA7.equals(classA1));
+
 		classA.test();
-		context.shutDown();
+		//context.shutDown();
 
 
 
