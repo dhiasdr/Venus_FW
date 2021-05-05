@@ -151,8 +151,12 @@ public class BeanFactory implements IBeanFactory {
 			}
 			setUpSimpleProperties(bean, beanProperty);
 		}
-		BehaviourMethodsInvoker.invokeFor(bean, beanDef.getId(),
-				beans.get(BeansDefinitionApplication.getPostProcessorBeanName()), beanDef.getInitMethod());
+		// BehaviourMethodsInvoker.invokeFor() should not be called for the
+		// postProcessor beans
+		if (!BeansDefinitionApplication.getPostProcessorBeansNames().contains(beanDef.getId())) {
+			BehaviourMethodsInvoker.invokeFor(bean, beanDef.getId(), getExistingPostProcessorBeans(),
+					beanDef.getInitMethod());
+		}
 	}
 
 	/**
@@ -186,8 +190,12 @@ public class BeanFactory implements IBeanFactory {
 			}
 			setUpSimpleProperties(bean, beanProperty);
 		}
-		BehaviourMethodsInvoker.invokeFor(bean, beanDef.getId(),
-				beans.get(BeansDefinitionApplication.getPostProcessorBeanName()), beanDef.getInitMethod());
+		// BehaviourMethodsInvoker.invokeFor() should not be called for the
+		// postProcessor beans
+		if (!BeansDefinitionApplication.getPostProcessorBeansNames().contains(beanDef.getId())) {
+			BehaviourMethodsInvoker.invokeFor(bean, beanDef.getId(), getExistingPostProcessorBeans(),
+					beanDef.getInitMethod());
+		}
 
 	}
 
@@ -488,4 +496,15 @@ public class BeanFactory implements IBeanFactory {
 		this.beans.clear();
 	}
 
+	/**
+	 * Returns all the post processor beans existing in the beans container
+	 * 
+	 * @return list of all post processor beans
+	 */
+	private ArrayList<Object> getExistingPostProcessorBeans() {
+		ArrayList<Object> postProcessorBeans = new ArrayList<>();
+		BeansDefinitionApplication.getPostProcessorBeansNames().stream()
+				.forEach(bean -> postProcessorBeans.add(this.beans.get(bean)));
+		return postProcessorBeans;
+	}
 }

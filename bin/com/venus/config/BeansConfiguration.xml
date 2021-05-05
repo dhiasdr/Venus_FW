@@ -8,9 +8,11 @@
   <bean id="classB" class="com.venus.test.dao.ClassB" >
    <property name="classA" ref="classA"/>
    <constructor-arg type="int" value="21"/>
-   <constructor-arg value="ClassB-test-Constructor"/>
+   <constructor-arg type="java.lang.String" value="ClassB-test-Constructor"/>
+   <constructor-arg type="int" value="2500"/>
   </bean>
   <bean id="postProcessor" class="com.venus.test.dao.PostProcessor"/>
+  <bean id="postProcessorv2" class="com.venus.test.dao.PostProcessorV2"/>
   <bean id="classA" class="com.venus.test.dao.ClassA" scope="prototype" init-method="init" destroy-method="destroy">
    <property name="age" type="int" value="21"/>
    <property name="name" type="java.lang.String" value="ClassA_instance01"/>

@@ -72,7 +72,7 @@ public class Test {
 		System.out.println(classA7+" ---"+classA1+"====>"+classA7.equals(classA1));
 
 		classA.test();
-		//context.shutDown();
+		context.shutDown();
 
 
 

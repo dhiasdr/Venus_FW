@@ -4,6 +4,7 @@ import com.venus.core.behaviour.BehaviourDestroy;
 
 public class ClassB implements BehaviourDestroy {
 	private int age;
+	private int salaire;
 	private String name;
 	private ClassA classA;
 
@@ -15,10 +16,11 @@ public class ClassB implements BehaviourDestroy {
 		this.age = age;
 	}
 
-	public ClassB(int age, String name) {
+	public ClassB(int age, String name, int salaire) {
 		super();
 		this.age = age;
 		this.name = name;
+		this.salaire=salaire;
 	}
 
 	public String getName() {
@@ -36,10 +38,17 @@ public class ClassB implements BehaviourDestroy {
 	public void setClassA(ClassA classA) {
 		this.classA = classA;
 	}
+	public int getSalaire() {
+		return salaire;
+	}
+
+	public void setSalaire(int salaire) {
+		this.salaire = salaire;
+	}
 
 	@Override
 	public String toString() {
-		return "ClassB [age=" + age + ", name=" + name + "]";
+		return "ClassB [age=" + age + ", salaire=" + salaire + ", name=" + name + ", classA=" + classA + "]";
 	}
 
 	@Override

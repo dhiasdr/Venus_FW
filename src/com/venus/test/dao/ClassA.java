@@ -37,7 +37,6 @@ public class ClassA implements IClassA, BehaviourAware, BehaviourInit, Behaviour
 	public void setName(String name) {
 		this.name = name;
 	}
-
 	@Override
 	public void initialize() {
 		System.out.println("Initialize method executed");

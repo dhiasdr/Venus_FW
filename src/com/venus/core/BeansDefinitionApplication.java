@@ -15,7 +15,7 @@ import com.venus.exception.VenusConfigurationException;
 public class BeansDefinitionApplication {
 	private static String beansConfigurationFileName;
 	private static ArrayList<BeanDefinition> beansDefinition;
-	private static String postProcessorBeanName;
+	private static ArrayList<String> postProcessorBeansNames= new ArrayList<>();
 
 	/**
 	 * Calls the method createBeansByConfiguration() to build all the beans
@@ -43,7 +43,7 @@ public class BeansDefinitionApplication {
 	private static void createBeansByConfiguration() {
 		try {
 			beansDefinition = BeansUtility.parseBeanConfigurationXML(beansConfigurationFileName);
-			prioritizeFactoriesBeans();
+			prioritizeTechnicalBeans();
 		} catch (ParserConfigurationException | SAXException | IOException | VenusConfigurationException e) {
 			e.printStackTrace();
 		}
@@ -61,15 +61,14 @@ public class BeansDefinitionApplication {
 		beansDefinition.set(index, beanDefinition);
 	}
 
-	private static void prioritizeFactoriesBeans() {
+	private static void prioritizeTechnicalBeans() {
 		ArrayList<String> priortizedBeansName = new ArrayList<>();
 		ArrayList<BeanDefinition> priortizedBeans = new ArrayList<>();
 		for (Iterator<?> beansDefinitionItr = beansDefinition.iterator(); beansDefinitionItr.hasNext();) {
 			BeanDefinition beanDefinition = (BeanDefinition) beansDefinitionItr.next();
 			if (isPostProcessorBean(beanDefinition)) {
-				postProcessorBeanName = beanDefinition.getId();
+				postProcessorBeansNames.add(beanDefinition.getId());
 				priortizedBeans.add(beanDefinition);
-				break;
 			}
 		}
 		for (Iterator<?> beansDefinitionItr = beansDefinition.iterator(); beansDefinitionItr.hasNext();) {
@@ -106,11 +105,11 @@ public class BeansDefinitionApplication {
 	}
 
 	/**
-	 * Returns the postProcessor bean's name existing in the container
+	 * Returns all postProcessor beans names existing in the container
 	 * 
-	 * @return the name of postProcessor bean
+	 * @return list of all postProcessor beans
 	 */
-	public static String getPostProcessorBeanName() {
-		return postProcessorBeanName;
+	public static ArrayList<String> getPostProcessorBeansNames() {
+		return postProcessorBeansNames;
 	}
 }
