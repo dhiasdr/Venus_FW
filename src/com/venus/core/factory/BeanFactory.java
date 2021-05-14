@@ -88,8 +88,9 @@ public class BeanFactory implements IBeanFactory {
 	 * beans and placed in the container.
 	 * 
 	 * @param name name of the requested bean
+	 * @return instance of the requested bean
 	 */
-	private void checkBeanForPrototypeScope(String prototypeBeanName) {
+	private Object checkBeanForPrototypeScope(String prototypeBeanName) {
 		Object bean = null;
 		BeanDefinition relatedBeanDefinition = null;
 		for (Iterator<?> beansIterator = BeansDefinitionApplication.getBeansDefinitionApplication()
@@ -102,12 +103,13 @@ public class BeanFactory implements IBeanFactory {
 						|| !relatedBeanDefinition.isSingleton()) {
 					bean = instanciateObject(relatedBeanDefinition.getClassName(), relatedBeanDefinition);
 					setBeanPropertiesForProtoype(bean, relatedBeanDefinition);
+					this.beans.put(prototypeBeanName, bean);
 				}
 				break;
 			}
 		}
-
-		if (relatedBeanDefinition != null && ((relatedBeanDefinition.getScope() != null
+        return bean;
+		/*if (relatedBeanDefinition != null && ((relatedBeanDefinition.getScope() != null
 				&& relatedBeanDefinition.getScope().equals(PROTOYPE_SCOPE)) || !relatedBeanDefinition.isSingleton())) {
 			this.beans.put(prototypeBeanName, bean);
 			for (Iterator<?> beansIterator = BeansDefinitionApplication.getBeansDefinitionApplication()
@@ -128,7 +130,7 @@ public class BeanFactory implements IBeanFactory {
 
 				}
 			}
-		}
+		}*/
 
 	}
 
@@ -141,14 +143,24 @@ public class BeanFactory implements IBeanFactory {
 	private void setBeanPropertiesForProtoype(Object bean, BeanDefinition beanDef) {
 		for (Iterator<?> beanPropertiesIt = beanDef.getProperties().iterator(); beanPropertiesIt.hasNext();) {
 			BeanProperty beanProperty = (BeanProperty) beanPropertiesIt.next();
-			if (beanProperty.getRef() != null) {
 				try {
+				if (beanProperty.getRef() != null) {
+					if (findBeanDefinitionByPropertyReference(beanProperty.getRef()) != null
+							&& (!findBeanDefinitionByPropertyReference(beanProperty.getRef()).isSingleton()
+									|| (findBeanDefinitionByPropertyReference(beanProperty.getRef()).getScope() != null
+											&& findBeanDefinitionByPropertyReference(beanProperty.getRef()).getScope()
+													.equals(PROTOYPE_SCOPE)))) {
+						
+						Object referencedBean = checkBeanForPrototypeScope(beanProperty.getRef());
+						setProperty(bean, referencedBean, beanProperty.getName()); 
+					}
 					Object referencedBean = this.beans.get(beanProperty.getRef());
 					setProperty(bean, referencedBean, beanProperty.getName());
+					}
 				} catch (VenusPropertyNotFound e) {
 					e.printStackTrace();
 				}
-			}
+			
 			setUpSimpleProperties(bean, beanProperty);
 		}
 		// BehaviourMethodsInvoker.invokeFor() should not be called for the

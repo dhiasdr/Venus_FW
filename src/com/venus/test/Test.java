@@ -40,8 +40,12 @@ public class Test {
         //Test-Singleton
 		ObjectServiceImpl obj1 = context.getBean("objectService",
 				ObjectServiceImpl.class);
+        ((ObjectDAOImpl)obj1.getObjectDAO()).setA(15);
+
 		IObjectService obj2 = context.getBean("objectService",
 				ObjectServiceImpl.class);
+        ((ObjectDAOImpl)obj1.getObjectDAO()).setA(30);
+
 		System.out.println(obj1+" ---"+obj2+"====>"+obj1.equals(obj2));
 		System.out.println("'obj1' and 'obj2'" + "are referring "
 				+ "to the same object: " + (obj1 == obj2));
@@ -63,16 +67,35 @@ public class Test {
         System.out.println(context.isSingleton("singleton"));
 		System.out.println(singleton+" ---"+singleton1+"====>"+singleton.equals(singleton1));
 		ObjectDAOFactory daoFact = context.getBean("daoFactory", ObjectDAOFactory.class);
-		ObjectDAOImpl daoImpl = (ObjectDAOImpl) daoFact.createInstance();
+		//ObjectDAOImpl daoImpl = (ObjectDAOImpl) daoFact.createInstance();
 		System.out.println("test daoFactory");
-		daoImpl.work();
+		//daoImpl.work();
         System.out.println("-------------------------------");
 		IClassA classA7 = context.getBean("classA");
 		IClassA classA1 = context.getBean("classA");
 		System.out.println(classA7+" ---"+classA1+"====>"+classA7.equals(classA1));
 
 		classA.test();
-		context.shutDown();
+		//context.shutDown();
+		/*ObjectServiceImpl obj1 = context.getBean("objectService",
+				ObjectServiceImpl.class);
+		((ObjectDAOImpl)obj1.getObjectDAO()).setA(10);
+		//((ObjectDAOImpl)obj1.getObjectDAO()).getClassC().setB(18);
+		ObjectServiceImpl obj2 = context.getBean("objectService",
+				ObjectServiceImpl.class);
+		((ObjectDAOImpl)obj2.getObjectDAO()).setA(20);
+		//((ObjectDAOImpl)obj2.getObjectDAO()).getClassC().setB(28);
+
+		System.out.println(obj1==obj2);
+		obj1.serviceWork();*/
+        System.out.println("************************************");
+        ObjectDAOImpl od1=context.getBean("objectDAO", ObjectDAOImpl.class);
+        od1.getClassC().setB(20);
+        ObjectDAOImpl od2=context.getBean("objectDAO", ObjectDAOImpl.class);
+        od2.getClassC().setB(50);
+        od1.work();
+        System.out.println("************************************");
+
 
 
 
