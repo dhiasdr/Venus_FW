@@ -74,6 +74,11 @@ public final class BeanDefinitionBuilder {
 		return this;
 
 	}
+	public BeanDefinitionBuilder setAspect(boolean isAspect) {
+		this.beanDefinition.setAspect(isAspect);
+		return this;
+
+	}
 	public BeanDefinition finish() {
 		return beanDefinition;
 

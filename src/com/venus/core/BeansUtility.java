@@ -108,6 +108,7 @@ public class BeansUtility {
 				.setFactoryBean(element.getAttribute("factory-bean") != null&& !element.getAttribute("factory-bean").isEmpty() ? element.getAttribute("factory-bean") : null)
 				.setInitMethod(element.getAttribute("init-method") != null&& !element.getAttribute("init-method").isEmpty() ? element.getAttribute("init-method") : null)
 				.setDestroyMethod(element.getAttribute("destroy-method") != null&& !element.getAttribute("destroy-method").isEmpty() ? element.getAttribute("destroy-method") : null)
+				.setAspect(element.getAttribute("aspect") != null&& !element.getAttribute("aspect").isEmpty() ? Boolean.parseBoolean(element.getAttribute("aspect")): false)
 				.finish();
 	}
 }

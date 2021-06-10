@@ -19,6 +19,7 @@
       <xs:attribute name="factory-bean" type="xs:string"/>
       <xs:attribute name="init-method" type="xs:string"/>
       <xs:attribute name="destroy-method" type="xs:string"/>
+      <xs:attribute name="aspect" type="xs:boolean"/>
    </xs:complexType>
    <xs:complexType name="propertyType">
       <xs:attribute name="name" type="xs:string" use="required" />

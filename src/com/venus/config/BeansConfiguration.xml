@@ -23,4 +23,5 @@
    <property name="name" type="java.lang.String" value="ClassA_instance01"/>
   </bean>
   <bean id="singleton" class="com.venus.test.dao.Singleton" factory-method="createInstance" scope="prototype"/>
-</beans>
+  <bean id="aspect" class="com.venus.test.AspectTest" aspect="true"/>
+  </beans>

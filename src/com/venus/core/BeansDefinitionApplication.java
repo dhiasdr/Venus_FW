@@ -16,6 +16,8 @@ public class BeansDefinitionApplication {
 	private static String beansConfigurationFileName;
 	private static ArrayList<BeanDefinition> beansDefinition;
 	private static ArrayList<String> postProcessorBeansNames= new ArrayList<>();
+	private static ArrayList<String> aspectBeansNames= new ArrayList<>();
+	private static ArrayList<String> technicalBeansNames= new ArrayList<>();
 
 	/**
 	 * Calls the method createBeansByConfiguration() to build all the beans
@@ -62,8 +64,16 @@ public class BeansDefinitionApplication {
 	}
 
 	private static void prioritizeTechnicalBeans() {
-		ArrayList<String> priortizedBeansName = new ArrayList<>();
+		ArrayList<String> factoriesBeansName = new ArrayList<>();
 		ArrayList<BeanDefinition> priortizedBeans = new ArrayList<>();
+		for (Iterator<?> beansDefinitionItr = beansDefinition.iterator(); beansDefinitionItr.hasNext();) {
+			BeanDefinition beanDefinition = (BeanDefinition) beansDefinitionItr.next();
+			//treat the case of aspect bean
+            if(beanDefinition.isAspect()) {
+            	aspectBeansNames.add(beanDefinition.getId());
+            	priortizedBeans.add(beanDefinition); 
+            }
+		}
 		for (Iterator<?> beansDefinitionItr = beansDefinition.iterator(); beansDefinitionItr.hasNext();) {
 			BeanDefinition beanDefinition = (BeanDefinition) beansDefinitionItr.next();
 			if (isPostProcessorBean(beanDefinition)) {
@@ -71,15 +81,18 @@ public class BeansDefinitionApplication {
 				priortizedBeans.add(beanDefinition);
 			}
 		}
+    	technicalBeansNames.addAll(aspectBeansNames);
+    	technicalBeansNames.addAll(postProcessorBeansNames);
 		for (Iterator<?> beansDefinitionItr = beansDefinition.iterator(); beansDefinitionItr.hasNext();) {
 			BeanDefinition beanDefinition = (BeanDefinition) beansDefinitionItr.next();
 			if (beanDefinition.getFactoryBean() != null) {
-				priortizedBeansName.add(beanDefinition.getFactoryBean());
+				factoriesBeansName.add(beanDefinition.getFactoryBean());
 			}
 		}
 		for (Iterator<?> beansDefinitionItr = beansDefinition.iterator(); beansDefinitionItr.hasNext();) {
 			BeanDefinition beanDefinition = (BeanDefinition) beansDefinitionItr.next();
-			if (priortizedBeansName.contains(beanDefinition.getId())) {
+			if (factoriesBeansName.contains(beanDefinition.getId())) {
+            	technicalBeansNames.add(beanDefinition.getId());
 				priortizedBeans.add(beanDefinition);
 			}
 		}
@@ -88,7 +101,7 @@ public class BeansDefinitionApplication {
 			priortizedBeans.addAll(beansDefinition);
 			beansDefinition = priortizedBeans;
 		}
-
+       System.out.println(beansDefinition);
 	}
 
 	private static boolean isPostProcessorBean(BeanDefinition beanDef) {
@@ -111,5 +124,11 @@ public class BeansDefinitionApplication {
 	 */
 	public static ArrayList<String> getPostProcessorBeansNames() {
 		return postProcessorBeansNames;
+	}
+	public static ArrayList<String> getAspectBeansNames() {
+		return aspectBeansNames;
+	}
+	public static ArrayList<String> getTechnicalBeansNames() {
+		return technicalBeansNames;
 	}
 }

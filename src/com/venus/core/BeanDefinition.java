@@ -15,6 +15,7 @@ public class BeanDefinition {
 	private String initMethod;
 	private String destroyMethod;
     private boolean instantiated;
+    private boolean isAspect;
 	public BeanDefinition() {
 	}
 
@@ -107,10 +108,23 @@ public class BeanDefinition {
 		this.destroyMethod = destroyMethod;
 	}
 
+	public boolean isAspect() {
+		return isAspect;
+	}
+
+	public void setAspect(boolean isAspect) {
+		this.isAspect = isAspect;
+	}
+
 	@Override
 	public String toString() {
-		return "BeanDefinition [id=" + id + ", className=" + className
-				+ ", properties=" + properties + ", scope=" + scope + "]";
+		return "BeanDefinition [id=" + id + ", className=" + className + ", properties=" + properties
+				+ ", constructorArguments=" + constructorArguments + ", scope=" + scope + ", isSingleton=" + isSingleton
+				+ ", factoryBean=" + factoryBean + ", factoryMethod=" + factoryMethod + ", initMethod=" + initMethod
+				+ ", destroyMethod=" + destroyMethod + ", instantiated=" + instantiated + ", isAspect=" + isAspect
+				+ "]";
 	}
+
+
 
 }

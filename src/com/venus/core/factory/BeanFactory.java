@@ -8,6 +8,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 
+import com.venus.aop.AOPUtility;
+import com.venus.aop.AspectActivator;
 import com.venus.core.BeanConstructorArgument;
 import com.venus.core.BeanDefinition;
 import com.venus.core.BeanProperty;
@@ -76,7 +78,9 @@ public class BeanFactory implements IBeanFactory {
 				bean = instanciateObject(beanDefinition.getClassName(), beanDefinition);
 				setBeanProperties(bean, beanDefinition);
 				BeansDefinitionApplication.markBeanAsInstantiated(beanDefinition);
-				this.beans.put(beanDefinition.getId(), bean);
+				//Activate Aspect
+				this.beans.put(beanDefinition.getId(), 
+						processAspectTreatmentFor(bean, beanDefinition));
 			}
 		}
 	}
@@ -103,7 +107,9 @@ public class BeanFactory implements IBeanFactory {
 						|| !relatedBeanDefinition.isSingleton()) {
 					bean = instanciateObject(relatedBeanDefinition.getClassName(), relatedBeanDefinition);
 					setBeanPropertiesForProtoype(bean, relatedBeanDefinition);
-					this.beans.put(prototypeBeanName, bean);
+					//Activate Aspect
+					this.beans.put(prototypeBeanName, 
+							processAspectTreatmentFor(bean, relatedBeanDefinition));
 				}
 				break;
 			}
@@ -165,7 +171,8 @@ public class BeanFactory implements IBeanFactory {
 		}
 		// BehaviourMethodsInvoker.invokeFor() should not be called for the
 		// postProcessor beans
-		if (!BeansDefinitionApplication.getPostProcessorBeansNames().contains(beanDef.getId())) {
+		if (!BeansDefinitionApplication.getPostProcessorBeansNames().contains(beanDef.getId())
+				&& !BeansDefinitionApplication.getAspectBeansNames().contains(beanDef.getId())) {
 			BehaviourMethodsInvoker.invokeFor(bean, beanDef.getId(), getExistingPostProcessorBeans(),
 					beanDef.getInitMethod());
 		}
@@ -188,8 +195,9 @@ public class BeanFactory implements IBeanFactory {
 					if (beanDefinition != null) {
 						Object referencedBean = instanciateObject(beanDefinition.getClassName(), beanDefinition);
 						setProperty(bean, referencedBean, beanProperty.getName());
-						this.beans.put(beanDefinition.getId(), referencedBean);
-						BeansDefinitionApplication.markBeanAsInstantiated(beanDefinition);
+						//Activate Aspect
+						this.beans.put(beanDefinition.getId(),processAspectTreatmentFor(referencedBean, beanDefinition));
+								BeansDefinitionApplication.markBeanAsInstantiated(beanDefinition);
 						setBeanProperties(referencedBean, beanDefinition);
 					} else {
 						throw new VenusBeanConfigurationNotFound(
@@ -204,7 +212,8 @@ public class BeanFactory implements IBeanFactory {
 		}
 		// BehaviourMethodsInvoker.invokeFor() should not be called for the
 		// postProcessor beans
-		if (!BeansDefinitionApplication.getPostProcessorBeansNames().contains(beanDef.getId())) {
+		if (!BeansDefinitionApplication.getPostProcessorBeansNames().contains(beanDef.getId())
+				&& !BeansDefinitionApplication.getAspectBeansNames().contains(beanDef.getId())) {
 			BehaviourMethodsInvoker.invokeFor(bean, beanDef.getId(), getExistingPostProcessorBeans(),
 					beanDef.getInitMethod());
 		}
@@ -516,7 +525,32 @@ public class BeanFactory implements IBeanFactory {
 	private ArrayList<Object> getExistingPostProcessorBeans() {
 		ArrayList<Object> postProcessorBeans = new ArrayList<>();
 		BeansDefinitionApplication.getPostProcessorBeansNames().stream()
-				.forEach(bean -> postProcessorBeans.add(this.beans.get(bean)));
+				.forEach(beanName -> postProcessorBeans.add(this.beans.get(beanName)));
 		return postProcessorBeans;
+	}
+	
+	/**
+	 * Returns all the aspect beans existing in the beans container
+	 * 
+	 * @return list of all aspect beans
+	 */
+	private ArrayList<Object> getExistingAspectBeans() {
+		ArrayList<Object> aspectBeans = new ArrayList<>();
+		BeansDefinitionApplication.getAspectBeansNames().stream()
+				.forEach(beanName -> aspectBeans.add(this.beans.get(beanName)));
+		return aspectBeans;
+	}
+	
+	private Object processAspectTreatmentFor(Object target, BeanDefinition relatedBeanDefinition) {
+		if(BeansDefinitionApplication.getTechnicalBeansNames()
+				.contains(relatedBeanDefinition.getId())){
+			return target;
+		}
+		else if(getExistingAspectBeans().size()>0) {
+			if(AOPUtility.isEligibleToAspectProcess(target, getExistingAspectBeans())) {
+			return 	AspectActivator.activateAspect(target, getExistingAspectBeans());
+			}
+		}
+		return target;
 	}
 }

@@ -1,5 +1,6 @@
 package com.venus.test;
 
+
 import com.venus.core.ApplicationContext;
 import com.venus.core.ApplicationContextXMLConfiguration;
 import com.venus.test.dao.ClassA;
@@ -52,10 +53,10 @@ public class Test {
 		System.out.println("Address of object obj1: " + obj1);
 		System.out.println("Address of object obj2: " + obj2);
 		obj1.serviceWork();
-		IObjectDAO dao1=context.getBean("objectDAO", ObjectDAOImpl.class);
-		IObjectDAO dao2=context.getBean("objectDAO", ObjectDAOImpl.class);
-		dao1.work();
-		System.out.println(dao1+" ---"+dao2+"====>"+dao1.equals(dao2));
+		//IObjectDAO dao1=context.getBean("objectDAO", ObjectDAOImpl.class);
+		//IObjectDAO dao2=context.getBean("objectDAO", ObjectDAOImpl.class);
+		//dao1.work();
+		//System.out.println(dao1+" ---"+dao2+"====>"+dao1.equals(dao2));
 		ClassB b = context.getBean("classB", ClassB.class);
 		ClassB b1 = context.getBean("classB", ClassB.class);
 		//System.out.println(b);
@@ -77,28 +78,32 @@ public class Test {
 
 		classA.test();
 		//context.shutDown();
-		/*ObjectServiceImpl obj1 = context.getBean("objectService",
-				ObjectServiceImpl.class);
-		((ObjectDAOImpl)obj1.getObjectDAO()).setA(10);
+		//ObjectServiceImpl obj1 = context.getBean("objectService",
+				//ObjectServiceImpl.class);
+		//((ObjectDAOImpl)obj1.getObjectDAO()).setA(10);
 		//((ObjectDAOImpl)obj1.getObjectDAO()).getClassC().setB(18);
-		ObjectServiceImpl obj2 = context.getBean("objectService",
-				ObjectServiceImpl.class);
-		((ObjectDAOImpl)obj2.getObjectDAO()).setA(20);
+		//ObjectServiceImpl obj2 = context.getBean("objectService",
+				//ObjectServiceImpl.class);
+		//((ObjectDAOImpl)obj2.getObjectDAO()).setA(20);
 		//((ObjectDAOImpl)obj2.getObjectDAO()).getClassC().setB(28);
 
 		System.out.println(obj1==obj2);
-		obj1.serviceWork();*/
+		obj1.serviceWork();
         System.out.println("************************************");
-        ObjectDAOImpl od1=context.getBean("objectDAO", ObjectDAOImpl.class);
-        od1.getClassC().setB(20);
-        ObjectDAOImpl od2=context.getBean("objectDAO", ObjectDAOImpl.class);
-        od2.getClassC().setB(50);
-        od1.work();
+       // ObjectDAOImpl od1=context.getBean("objectDAO", ObjectDAOImpl.class);
+        //od1.getClassC().setB(20);
+       // ObjectDAOImpl od2=context.getBean("objectDAO", ObjectDAOImpl.class);
+       // od2.getClassC().setB(50);
+       // od1.work();
         System.out.println("************************************");
-
-
-
-
+        
+        
+        IObjectDAO objDao=context.getBean("objectDAO", IObjectDAO.class);
+        objDao.aspectTest();
+        ClassA clsA=context.getBean("classA", ClassA.class);
+		System.out.println(clsA.getAge());
+//		IClassA clsA=context.getBean("classA", IClassA.class);
+//		clsA.test();
 	}
-
+	
 }

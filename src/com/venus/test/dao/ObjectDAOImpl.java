@@ -26,6 +26,13 @@ public class ObjectDAOImpl implements IObjectDAO {
 		this.classC = classC;
 	}
 
+	@Override
+    public String aspectTest() {
+    	System.out.println("for testing aspect!");
+    	throw new NullPointerException("a not found");
+    	//return "// Aspect Test method //";
+    }
+
 	/*
 	 * public void setClassA(IClassA classA) { this.classA = classA; } public
 	 * IClassA getClassA() { return classA; }
