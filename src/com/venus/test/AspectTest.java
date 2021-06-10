@@ -28,4 +28,9 @@ public class AspectTest {
 	public void afterThrowingTreatement(Exception e){
 		System.out.println("Traitement after throwing " + e);
 	}
+	
+	@Around("* * com.venus.*.*.ClassA.test()")
+	public void aroundClassATreatement(){
+		System.out.println("Traitement around classA");
+	}
 }

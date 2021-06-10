@@ -145,13 +145,20 @@ public class AOPUtility {
 				}
 				//
 				if (strE.contains(VERSATILE_VALUE_STRING)) {
-					String[] strMArray = (strM.trim().substring(0, strM.indexOf(LEFT_BRACKET_STRING)-1)).split("\\"+DOT_STRING);
-					String[] strEArray = (strE.trim().substring(0, strE.indexOf(LEFT_BRACKET_STRING)-1)).split("\\"+DOT_STRING);
+					String[] strMArray = (strM.trim().substring(0, strM.indexOf(LEFT_BRACKET_STRING))).split("\\"+DOT_STRING);
+					String[] strEArray = (strE.trim().substring(0, strE.indexOf(LEFT_BRACKET_STRING))).split("\\"+DOT_STRING);
 
 					ArrayList<String> strEList = new ArrayList<>(Arrays.asList(strEArray));
 					ArrayList<String> strMList = new ArrayList<>(Arrays.asList(strMArray));
-					ArrayList<String> subMList = new ArrayList<>(
-							strMList.subList(strMList.size() - strEList.size(), strMList.size()));
+					ArrayList<String> subMList=null;
+					if(strMList.size() == strEList.size()) {
+						subMList=strMList;
+					}
+					else if(strMList.size()<strEList.size()) return false;
+					else {
+						subMList = new ArrayList<>(
+								strMList.subList(strMList.size() - strEList.size(), strMList.size()));
+					}
 					for (int i = (Arrays.asList(strEArray)).size(); i > 0; i--) {
 						if (!strEList.get(i - 1).equals(VERSATILE_VALUE_STRING) && !strEList.get(i - 1).equals(subMList.get(i - 1)))
 							return false;

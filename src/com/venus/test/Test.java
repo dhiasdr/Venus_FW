@@ -23,11 +23,11 @@ public class Test {
 				"BeansConfiguration.xml");
         //Test-Prototype
 
-		IClassA classA = context.getBean("classA", ClassA.class);
+		/*IClassA classA = context.getBean("classA", IClassA.class);
 		((ClassA) classA).setName("classA");
 		System.out.println("Hello object (helloA)" + "Your name is: "
 				+ ((ClassA) classA).getName());
-		IClassA classB = context.getBean("classA", ClassA.class);
+		IClassA classB = context.getBean("classA", IClassA.class);
 		((ClassA) classB).setName("classB");
 		System.out.println("Hello object (helloB)" + "Your name is: "
 				+ ((ClassA) classB).getName());
@@ -36,7 +36,7 @@ public class Test {
 
 		System.out.println("Address of object classA: " + classA);
 		System.out.println("Address of object classB: " + classB);
-		System.out.println("----------------------- ");
+		System.out.println("----------------------- ");*/
 
         //Test-Singleton
 		ObjectServiceImpl obj1 = context.getBean("objectService",
@@ -72,11 +72,11 @@ public class Test {
 		System.out.println("test daoFactory");
 		//daoImpl.work();
         System.out.println("-------------------------------");
-		IClassA classA7 = context.getBean("classA");
-		IClassA classA1 = context.getBean("classA");
+		IClassA classA7 = context.getBean("classA", IClassA.class);
+		IClassA classA1 = context.getBean("classA",IClassA.class);
 		System.out.println(classA7+" ---"+classA1+"====>"+classA7.equals(classA1));
 
-		classA.test();
+		//classA.test();
 		//context.shutDown();
 		//ObjectServiceImpl obj1 = context.getBean("objectService",
 				//ObjectServiceImpl.class);
@@ -100,10 +100,10 @@ public class Test {
         
         IObjectDAO objDao=context.getBean("objectDAO", IObjectDAO.class);
         objDao.aspectTest();
-        ClassA clsA=context.getBean("classA", ClassA.class);
-		System.out.println(clsA.getAge());
-//		IClassA clsA=context.getBean("classA", IClassA.class);
-//		clsA.test();
+        //ClassA clsA=context.getBean("classA", ClassA.class);
+		//System.out.println(clsA.getAge());
+        IClassA clsA=context.getBean("classA", IClassA.class);
+        clsA.test();
 	}
 	
 }
