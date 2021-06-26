@@ -84,7 +84,7 @@ public class BeansUtility {
 		   BeanConstructorArgumentBuilder beanConstructorArgumentBuilder= new BeanConstructorArgumentBuilder(); 
 	  	   return beanConstructorArgumentBuilder
 	          	  .setType(element.getAttribute("type")!=null&&!element.getAttribute("type").isEmpty()?element.getAttribute("type"):null)
-	          	  .setValue(element.getAttribute("value")!=null&&!element.getAttribute("value").isEmpty()?element.getAttribute("value"):null)
+	          	  .setValue(element.getAttribute("value")!=null&&!element.getAttribute("value").isEmpty()?(element.getAttribute("value").equals("null")?null:element.getAttribute("value")):null)
 	          	  .finish();
 	}
 	private static BeanProperty mapElementToBeanProperty(Element element){
@@ -92,7 +92,7 @@ public class BeansUtility {
   	   return beanPropertyBuilder.setName(element.getAttribute("name")!=null&&!element.getAttribute("name").isEmpty()?element.getAttribute("name"):null)
           	  .setRef(element.getAttribute("ref")!=null&&!element.getAttribute("ref").isEmpty()?element.getAttribute("ref"):null)
           	  .setType(element.getAttribute("type")!=null&&!element.getAttribute("type").isEmpty()?element.getAttribute("type"):null)
-          	  .setValue(element.getAttribute("value")!=null&&!element.getAttribute("value").isEmpty()?element.getAttribute("value"):null)
+          	  .setValue(element.getAttribute("value")!=null&&!element.getAttribute("value").isEmpty()?(element.getAttribute("value").equals("null")?null:element.getAttribute("value")):null)
           	  .finish();
 	}
 	private static BeanDefinition mapElementToBeanDefinition(Element element,ArrayList<BeanProperty> properties, ArrayList<BeanConstructorArgument> beanConstructorArguments){

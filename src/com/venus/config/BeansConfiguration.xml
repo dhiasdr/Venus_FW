@@ -24,4 +24,15 @@
   </bean>
   <bean id="singleton" class="com.venus.test.dao.Singleton" factory-method="createInstance" scope="prototype"/>
   <bean id="aspect" class="com.venus.test.AspectTest" aspect="true"/>
+  <bean id="testD" class="com.venus.test.TestDouble">
+   <constructor-arg type="java.lang.Integer" value="25"/>
+  </bean>
+  <bean id="classIndepCir" class="com.venus.test.dao.ClassIndepCir" scope="prototype">
+   <property name="a" type="int" value="21"/>
+   <property name="classIndepCir1" ref="classIndepCir1"/>
+  </bean>
+  <bean id="classIndepCir1" class="com.venus.test.dao.ClassIndepCir1" scope="prototype">
+   <property name="b" type="int" value="22"/>
+   <property name="classIndepCir" ref="classIndepCir"/>
+  </bean>
   </beans>

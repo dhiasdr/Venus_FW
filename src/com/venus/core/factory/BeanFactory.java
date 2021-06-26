@@ -75,13 +75,18 @@ public class BeanFactory implements IBeanFactory {
 				.iterator(); beansIterator.hasNext();) {
 			BeanDefinition beanDefinition = (BeanDefinition) beansIterator.next();
 			if (!beanDefinition.isInstantiated()) {
-				bean = instanciateObject(beanDefinition.getClassName(), beanDefinition);
+				bean = instanciateObject(beanDefinition.getClassName(), beanDefinition,null);
 				setBeanProperties(bean, beanDefinition);
 				BeansDefinitionApplication.markBeanAsInstantiated(beanDefinition);
 				//Activate Aspect
 				this.beans.put(beanDefinition.getId(), 
 						processAspectTreatmentFor(bean, beanDefinition));
 			}
+		}
+		for (Iterator<?> beansIterator = BeansDefinitionApplication.getBeansDefinitionApplication()
+				.iterator(); beansIterator.hasNext();) {
+			BeanDefinition beanDefinition = (BeanDefinition) beansIterator.next();
+			beanDefinition.setInstantiated(false);
 		}
 	}
 
@@ -105,7 +110,10 @@ public class BeanFactory implements IBeanFactory {
 				if ((relatedBeanDefinition.getScope() != null
 						&& relatedBeanDefinition.getScope().equals(PROTOYPE_SCOPE))
 						|| !relatedBeanDefinition.isSingleton()) {
-					bean = instanciateObject(relatedBeanDefinition.getClassName(), relatedBeanDefinition);
+					bean = instanciateObject(relatedBeanDefinition.getClassName(), relatedBeanDefinition, null);
+                    //
+					BeansDefinitionApplication.markBeanAsInstantiated(relatedBeanDefinition);
+					//
 					setBeanPropertiesForProtoype(bean, relatedBeanDefinition);
 					//Activate Aspect
 					this.beans.put(prototypeBeanName, 
@@ -156,9 +164,16 @@ public class BeanFactory implements IBeanFactory {
 									|| (findBeanDefinitionByPropertyReference(beanProperty.getRef()).getScope() != null
 											&& findBeanDefinitionByPropertyReference(beanProperty.getRef()).getScope()
 													.equals(PROTOYPE_SCOPE)))) {
-						
+						//
+						if(findBeanDefinitionByPropertyReference(beanProperty.getRef()).isInstantiated()) {
+							Object referencedBean = this.beans.get(beanProperty.getRef());
+							setProperty(bean, referencedBean, beanProperty.getName());
+						}
+						else {
 						Object referencedBean = checkBeanForPrototypeScope(beanProperty.getRef());
 						setProperty(bean, referencedBean, beanProperty.getName()); 
+						}
+						//
 					}
 					Object referencedBean = this.beans.get(beanProperty.getRef());
 					setProperty(bean, referencedBean, beanProperty.getName());
@@ -192,13 +207,21 @@ public class BeanFactory implements IBeanFactory {
 			if (beanProperty.getRef() != null) {
 				try {
 					BeanDefinition beanDefinition = findBeanDefinitionByPropertyReference(beanProperty.getRef());
+					Object referencedBean =null;
+
 					if (beanDefinition != null) {
-						Object referencedBean = instanciateObject(beanDefinition.getClassName(), beanDefinition);
+						if(beanDefinition.isInstantiated()) {
+							referencedBean= this.beans.get(beanDefinition.getId());
+							 setProperty(bean, referencedBean, beanProperty.getName());
+						}
+						else {
+						referencedBean = instanciateObject(beanDefinition.getClassName(), beanDefinition,null);
 						setProperty(bean, referencedBean, beanProperty.getName());
 						//Activate Aspect
 						this.beans.put(beanDefinition.getId(),processAspectTreatmentFor(referencedBean, beanDefinition));
 								BeansDefinitionApplication.markBeanAsInstantiated(beanDefinition);
 						setBeanProperties(referencedBean, beanDefinition);
+					}
 					} else {
 						throw new VenusBeanConfigurationNotFound(
 								"Bean " + beanProperty.getRef() + " not found in Configuration file");
@@ -239,8 +262,7 @@ public class BeanFactory implements IBeanFactory {
 			if (isPrimitive(propertyType)) {
 				object = getPropertyValueWithPrmTypes(propertyType, beanProperty.getValue());
 			} else {
-				object = instanciateObject(propertyType, null);
-				object = beanProperty.getValue();
+				object = instanciateObject(propertyType, null, beanProperty.getValue());
 			}
 			try {
 				setProperty(bean, object, beanProperty.getName());
@@ -260,7 +282,7 @@ public class BeanFactory implements IBeanFactory {
 	 * @return the object, result of instantiation
 	 * 
 	 */
-	private Object instanciateObject(String className, BeanDefinition beanDefinition) {
+	private Object instanciateObject(String className, BeanDefinition beanDefinition, String value) {
 		Object object = null;
 		try {
 			if (beanDefinition != null && beanDefinition.getConstructorArguments() != null
@@ -276,14 +298,17 @@ public class BeanFactory implements IBeanFactory {
 							|| (constructorArgument.getType() != null && !isPrimitive(constructorArgument.getType()))) {
 						paramCls[i] = Class.forName(
 								(constructorArgument.getType() == null) ? DEFAULT_TYPE : constructorArgument.getType());
+						if(constructorArgument.getValue()!=null) {
 						paramObject = instanciateObject(
 								(constructorArgument.getType() == null) ? DEFAULT_TYPE : constructorArgument.getType(),
-								null);
-						paramObject = constructorArgument.getValue();
+								null,constructorArgument.getValue());
+						}
 					} else {
 						paramCls[i] = getParamsClass(constructorArgument.getType());
+						if(constructorArgument.getValue()!=null) {
 						paramObject = getPropertyValueWithPrmTypes(constructorArgument.getType(),
 								constructorArgument.getValue());
+						}
 					}
 					paramValues.add(paramObject);
 				}
@@ -296,9 +321,16 @@ public class BeanFactory implements IBeanFactory {
 			} else {
 				if (beanDefinition != null && beanDefinition.getFactoryMethod() != null) {
 					object = getObjectFromFactory(beanDefinition, null, null);
-				} else
-					object = Class.forName(className).getConstructor().newInstance();
-
+				} else {
+					Class<?>[] clss= {Integer.class, Boolean.class, Double.class, Long.class,
+							String.class,Float.class, Byte.class, Short.class};
+					if(Arrays.asList(clss).contains(Class.forName(className)) && value!=null) {
+						object = instantiateNoPrimitiveTypes(className,value);
+					}
+					else {
+						object = Class.forName(className).getConstructor().newInstance();
+					}
+				}
 			}
 
 		} catch (SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException
@@ -306,6 +338,80 @@ public class BeanFactory implements IBeanFactory {
 			e.printStackTrace();
 		}
 		return object;
+	}
+	
+	private Object instantiateNoPrimitiveTypes(String className, String value) {
+		Object result=null;
+		try {
+			Class<?>cls = Class.forName(className);
+			if(cls.equals(Double.class)) {
+				try {
+					result = Double.valueOf(value);
+				} catch (IllegalArgumentException
+						| SecurityException e) {
+					e.printStackTrace();
+				}
+			}
+			else if(cls.equals(String.class)) {
+				try {
+					result = String.valueOf(value);
+				} catch (IllegalArgumentException
+						| SecurityException e) {
+					e.printStackTrace();
+				}
+			}
+			else if(cls.equals(Integer.class)) {
+				try {
+					result = Integer.valueOf(value);
+				} catch (IllegalArgumentException
+						| SecurityException e) {
+					e.printStackTrace();
+				}
+			}
+			else if(cls.equals(Long.class)) {
+				try {
+					result = Long.valueOf(value);
+				} catch (IllegalArgumentException
+						| SecurityException e) {
+					e.printStackTrace();
+				}
+			}
+			else if(cls.equals(Float.class)) {
+				try {
+					result = Float.valueOf(value);
+				} catch (IllegalArgumentException
+						| SecurityException e) {
+					e.printStackTrace();
+				}
+			}
+			else if(cls.equals(Boolean.class)) {
+				try {
+					result = Boolean.valueOf(value);
+				} catch (IllegalArgumentException
+						| SecurityException e) {
+					e.printStackTrace();
+				}
+			}
+			else if(cls.equals(Short.class)) {
+				try {
+					result = Short.valueOf(value);
+				} catch (IllegalArgumentException
+						| SecurityException e) {
+					e.printStackTrace();
+				}
+			}
+			else if(cls.equals(Byte.class)) {
+				try {
+					result = Byte.valueOf(value);
+				} catch (IllegalArgumentException
+						| SecurityException e) {
+					e.printStackTrace();
+				}
+			}
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+		return result;
 	}
 
 	/**
