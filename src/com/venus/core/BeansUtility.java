@@ -2,7 +2,13 @@ package com.venus.core;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -11,12 +17,17 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
+
+import org.reflections.Reflections;
+import org.reflections.scanners.SubTypesScanner;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import com.venus.core.annotation.Autowired;
+import com.venus.core.annotation.Bean;
 import com.venus.core.builder.BeanConstructorArgumentBuilder;
 import com.venus.core.builder.BeanDefinitionBuilder;
 import com.venus.core.builder.BeanPropertyBuilder;
@@ -110,5 +121,102 @@ public class BeansUtility {
 				.setDestroyMethod(element.getAttribute("destroy-method") != null&& !element.getAttribute("destroy-method").isEmpty() ? element.getAttribute("destroy-method") : null)
 				.setAspect(element.getAttribute("aspect") != null&& !element.getAttribute("aspect").isEmpty() ? Boolean.parseBoolean(element.getAttribute("aspect")): false)
 				.finish();
+	}
+	public static void allProjectPackages(String directoryName, Set<String> packs) {
+		File directory = new File(directoryName);
+		File[] filesList = directory.listFiles();
+		for (File file : filesList) {
+			if (file.isFile()) {
+				String path = file.getPath();
+				String packName = path.substring(path.indexOf("src") + 4, path.lastIndexOf('\\'));
+				packs.add(packName.replace('\\', '.'));
+			} else if (file.isDirectory()) {
+				allProjectPackages(file.getAbsolutePath(), packs);
+			}
+		}
+
+	}
+	
+	public static ArrayList<BeanDefinition> getBeansDefinitionWithAnnotation() {
+		Set<Class<? extends Object>> classes = new HashSet<>();
+		Set<String> packagesNames = new HashSet<>();
+		allProjectPackages("src/", packagesNames);
+		ArrayList<BeanDefinition> beanDefinitionList = new ArrayList<>();
+		for (String packageName : packagesNames) {
+
+			Reflections reflections = new Reflections(packageName, new SubTypesScanner(false));
+			classes.addAll(reflections.getSubTypesOf(Object.class));
+		}
+		for (Class classs : classes) {
+			if (classs.isAnnotationPresent(Bean.class)) {
+
+				BeanDefinition beanDefinition = new BeanDefinition();
+				String className = classs.getSimpleName();
+				beanDefinition.setId(className.substring(0, 1).toLowerCase() + className.substring(1));
+				beanDefinition.setClassName(classs.getName());
+				Bean bean = (Bean) classs.getAnnotation(Bean.class);
+				boolean test = bean instanceof Bean;
+				if (bean.isSingleton()) {
+					beanDefinition.setSingleton(true);
+					beanDefinition.setScope("Singleton");
+				} else {
+					beanDefinition.setSingleton(false);
+					beanDefinition.setScope("Prototype");
+				}
+				if (bean.scope() != null && !bean.isSingleton()) {
+					beanDefinition.setSingleton(false);
+					beanDefinition.setScope("Prototype");
+				} else {
+					beanDefinition.setSingleton(true);
+					beanDefinition.setScope("Singleton");
+				}
+
+				beanDefinition.setFactoryBean(
+						bean.factoryBean() != null && !bean.factoryBean().isEmpty() ? bean.factoryBean() : null);
+				beanDefinition.setFactoryMethod(
+						bean.factoryMethod() != null && !bean.factoryMethod().isEmpty() ? bean.factoryMethod() : null);
+				beanDefinition.setInitMethod(
+						bean.initMethod() != null && !bean.initMethod().isEmpty() ? bean.initMethod() : null);
+				beanDefinition.setDestroyMethod(
+						bean.destroyMethod() != null && !bean.destroyMethod().isEmpty() ? bean.destroyMethod() : null);
+
+				ArrayList<BeanProperty> beanProperties = new ArrayList<>();
+				Field[] fields = classs.getDeclaredFields();
+				for (int i = 0; i < fields.length; i++) {
+					if ((fields[i].getType().isPrimitive())) {
+						BeanProperty beanProperty = new BeanProperty();
+						beanProperty.setName(fields[i].getName());
+						beanProperty.setType(fields[i].getType().toString());
+						beanProperties.add(beanProperty);
+					} else {
+						Class<?>[] complexTypesCls = { String.class, Boolean.class, Double.class, Float.class,
+								Character.class, Long.class, Integer.class, Short.class, Byte.class };
+
+						if (Arrays.asList(complexTypesCls).contains(fields[i].getType())) {
+							BeanProperty beanProperty = new BeanProperty();
+							beanProperty.setName(fields[i].getName());
+							beanProperty.setType(fields[i].getType().toString().substring(6));
+							beanProperties.add(beanProperty);
+						} else {
+							String methodName = "set" + fields[i].getName().substring(0, 1).toUpperCase()
+									+ fields[i].getName().substring(1);
+							for (Method m : classs.getDeclaredMethods()) {
+								if (m.getName().equals(methodName) && m.isAnnotationPresent(Autowired.class)) {
+									BeanProperty beanProperty = new BeanProperty();
+									beanProperty.setName(fields[i].getName());
+									beanProperty.setRef(fields[i].getName());
+									beanProperties.add(beanProperty);
+									break;
+								}
+							}
+						}
+					}
+
+				}
+				beanDefinition.setProperties(beanProperties);
+				beanDefinitionList.add(beanDefinition);
+			}
+		}
+		return beanDefinitionList;
 	}
 }

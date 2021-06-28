@@ -29,16 +29,29 @@ public class BeansDefinitionApplication {
 		beansConfigurationFileName = configurationFileName;
 		createBeansByConfiguration();
 	}
+	/**
+	 * Calls the method createBeansByAnnotation() to build all the beans
+	 * definition
+	 * 
+	 */
+	public static void createBeansApplicationByAnnotation() {
+		createBeansByAnnotation();
+	}
+	private static void createBeansByAnnotation() {
 
+		beansDefinition = BeansUtility.getBeansDefinitionWithAnnotation();
+		prioritizeTechnicalBeans();
+	
+}
 	/**
 	 * Returns all the beans definition for all beans configured in the file
 	 * 
 	 * @return list of beans definition
 	 */
 	public static ArrayList<BeanDefinition> getBeansDefinitionApplication() {
-		// for now
-		if (beansDefinition == null)
+		if (beansDefinition == null && beansConfigurationFileName!=null && !beansConfigurationFileName.isEmpty())
 			createBeansByConfiguration();
+		else if(beansDefinition==null)createBeansByAnnotation();
 		return beansDefinition;
 	}
 
