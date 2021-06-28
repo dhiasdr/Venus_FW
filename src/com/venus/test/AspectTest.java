@@ -5,13 +5,16 @@ import com.venus.aop.annotation.AfterReturning;
 import com.venus.aop.annotation.AfterThrowing;
 import com.venus.aop.annotation.Around;
 import com.venus.aop.annotation.Before;
-
+import com.venus.core.annotation.Aspect;
+import com.venus.core.annotation.Bean;
+@Bean
+@Aspect
 public class AspectTest {
-	@Before("* * *.ObjectDAOImpl.aspectTest() && @annotation(Override)")
+	@Before("* * *.Seif.aspectTest()")
 	public void beforeTreatement(){
 		System.out.println("Traitement Before");
 	}
-	@After("* * *.ObjectDAOImpl.aspectTest() && @annotation(Override)")
+	/*@After("* * *.ObjectDAOImpl.aspectTest() && @annotation(Override)")
 	public void afterTreatement(){
 		System.out.println("Traitement after");
 	}
@@ -32,5 +35,5 @@ public class AspectTest {
 	@Around("* * com.venus.*.*.ClassA.test()")
 	public void aroundClassATreatement(){
 		System.out.println("Traitement around classA");
-	}
+	}*/
 }

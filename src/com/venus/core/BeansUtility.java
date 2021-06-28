@@ -26,8 +26,13 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import com.venus.core.annotation.Aspect;
 import com.venus.core.annotation.Autowired;
 import com.venus.core.annotation.Bean;
+import com.venus.core.annotation.Component;
+import com.venus.core.annotation.Controller;
+import com.venus.core.annotation.Service;
+import com.venus.core.builder.AnnotationValuesBuilder;
 import com.venus.core.builder.BeanConstructorArgumentBuilder;
 import com.venus.core.builder.BeanDefinitionBuilder;
 import com.venus.core.builder.BeanPropertyBuilder;
@@ -36,6 +41,8 @@ import com.venus.exception.VenusConfigurationException;
 public class BeansUtility {
 	private static final String BASE_XML_PATH = "src/com/venus/config/";
 	private static final String XSD_PATH = "src/com/venus/config/BeansConfiguration.xsd";
+	private static final String PROTOYPE_SCOPE = "prototype";
+	private static final String SINGLETON_SCOPE = "singleton";
 
 	private static void ValidateBeanConfigurationXML(String fileName) throws VenusConfigurationException {
 		try {
@@ -148,37 +155,78 @@ public class BeansUtility {
 			classes.addAll(reflections.getSubTypesOf(Object.class));
 		}
 		for (Class classs : classes) {
-			if (classs.isAnnotationPresent(Bean.class)) {
+			if (classs.isAnnotationPresent(Bean.class) ||
+					classs.isAnnotationPresent(Service.class) ||
+					classs.isAnnotationPresent(Controller.class) ||
+					classs.isAnnotationPresent(Component.class)) {
 
 				BeanDefinition beanDefinition = new BeanDefinition();
 				String className = classs.getSimpleName();
 				beanDefinition.setId(className.substring(0, 1).toLowerCase() + className.substring(1));
 				beanDefinition.setClassName(classs.getName());
-				Bean bean = (Bean) classs.getAnnotation(Bean.class);
-				boolean test = bean instanceof Bean;
-				if (bean.isSingleton()) {
-					beanDefinition.setSingleton(true);
-					beanDefinition.setScope("Singleton");
-				} else {
-					beanDefinition.setSingleton(false);
-					beanDefinition.setScope("Prototype");
+				AnnotationValuesBuilder builder = new AnnotationValuesBuilder();
+				AnnotationValues annotationValues;
+				if(classs.isAnnotationPresent(Bean.class)) {
+					Bean bean = (Bean) classs.getAnnotation(Bean.class);
+					builder.setSingleton(bean.isSingleton());
+					builder.setScope(bean.scope());
+					builder.setDestroyMethod(bean.destroyMethod());
+					builder.setInitMethod(bean.initMethod());
+					builder.setFactoryMethod(bean.factoryMethod());
+					builder.setFactoryBean(bean.factoryBean());
+
 				}
-				if (bean.scope() != null && !bean.isSingleton()) {
+				else if(classs.isAnnotationPresent(Service.class)) {
+					Service service = (Service) classs.getAnnotation(Service.class);
+					builder.setSingleton(service.isSingleton());
+					builder.setScope(service.scope());
+					builder.setDestroyMethod(service.destroyMethod());
+					builder.setInitMethod(service.initMethod());
+					builder.setFactoryMethod(service.factoryMethod());
+					builder.setFactoryBean(service.factoryBean());
+				}
+				else if(classs.isAnnotationPresent(Controller.class)) {
+					Controller controller = (Controller) classs.getAnnotation(Controller.class);
+					builder.setSingleton(controller.isSingleton());
+					builder.setScope(controller.scope());
+					builder.setDestroyMethod(controller.destroyMethod());
+					builder.setInitMethod(controller.initMethod());
+					builder.setFactoryMethod(controller.factoryMethod());
+					builder.setFactoryBean(controller.factoryBean());
+				}
+				else {
+					Component component = (Component) classs.getAnnotation(Component.class);
+					builder.setSingleton(component.isSingleton());
+					builder.setScope(component.scope());
+					builder.setDestroyMethod(component.destroyMethod());
+					builder.setInitMethod(component.initMethod());
+					builder.setFactoryMethod(component.factoryMethod());
+					builder.setFactoryBean(component.factoryBean());
+				}
+				annotationValues= builder.finish();
+				if (annotationValues.isSingleton()) {
+					beanDefinition.setSingleton(true);
+					beanDefinition.setScope(SINGLETON_SCOPE);
+				} else {
 					beanDefinition.setSingleton(false);
-					beanDefinition.setScope("Prototype");
+					beanDefinition.setScope(PROTOYPE_SCOPE);
+				}
+				if (annotationValues.getScope() != null && !annotationValues.isSingleton()) {
+					beanDefinition.setSingleton(false);
+					beanDefinition.setScope(PROTOYPE_SCOPE);
 				} else {
 					beanDefinition.setSingleton(true);
-					beanDefinition.setScope("Singleton");
+					beanDefinition.setScope(SINGLETON_SCOPE);
 				}
 
 				beanDefinition.setFactoryBean(
-						bean.factoryBean() != null && !bean.factoryBean().isEmpty() ? bean.factoryBean() : null);
+						annotationValues.getFactoryBean() != null && !annotationValues.getFactoryBean().isEmpty() ? annotationValues.getFactoryBean() : null);
 				beanDefinition.setFactoryMethod(
-						bean.factoryMethod() != null && !bean.factoryMethod().isEmpty() ? bean.factoryMethod() : null);
+						annotationValues.getFactoryMethod() != null && !annotationValues.getFactoryMethod().isEmpty() ? annotationValues.getFactoryMethod() : null);
 				beanDefinition.setInitMethod(
-						bean.initMethod() != null && !bean.initMethod().isEmpty() ? bean.initMethod() : null);
+						annotationValues.getInitMethod() != null && !annotationValues.getInitMethod().isEmpty() ? annotationValues.getInitMethod() : null);
 				beanDefinition.setDestroyMethod(
-						bean.destroyMethod() != null && !bean.destroyMethod().isEmpty() ? bean.destroyMethod() : null);
+						annotationValues.getDestroyMethod() != null && !annotationValues.getDestroyMethod().isEmpty() ? annotationValues.getDestroyMethod() : null);
 
 				ArrayList<BeanProperty> beanProperties = new ArrayList<>();
 				Field[] fields = classs.getDeclaredFields();
@@ -214,6 +262,7 @@ public class BeansUtility {
 
 				}
 				beanDefinition.setProperties(beanProperties);
+				if(classs.isAnnotationPresent(Aspect.class))beanDefinition.setAspect(true);
 				beanDefinitionList.add(beanDefinition);
 			}
 		}

@@ -6,5 +6,10 @@ import java.lang.annotation.Retention;
 
 @Retention(RUNTIME)
 public @interface Component {
-
+	boolean isSingleton() default true;
+	String scope() default "Singleton";
+	String factoryBean() default "";
+	String factoryMethod() default "";
+	String initMethod() default "";
+	String destroyMethod() default "";
 }

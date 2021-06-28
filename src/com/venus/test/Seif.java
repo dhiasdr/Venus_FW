@@ -4,7 +4,7 @@ import com.venus.core.annotation.Autowired;
 import com.venus.core.annotation.Bean;
 
 @Bean(factoryBean = "seifFactory", factoryMethod = "getInstance")
-public class Seif {
+public class Seif implements SeifInterface {
 	private String name;
 	private Double age=19.0;
 	private Test3 test3;
@@ -36,6 +36,8 @@ public class Seif {
 	public void setTest3(Test3 test) {
 		this.test3 = test;
 	}
-
-
+@Override
+public void aspectTest() {
+	System.out.println("aspectTest");
+}
 }

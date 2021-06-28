@@ -12,9 +12,10 @@ public class TestAnnotation {
 		ApplicationContext context = new ApplicationContextConfiguration();
         //Test-Prototype
 
-		Seif seif = context.getBean("seif", Seif.class);
+		SeifInterface seif = context.getBean("seif", SeifInterface.class);
 		Test3 test3 = context.getBean("test3", Test3.class);
-		System.out.println(seif.getTest3().getAge());
+		seif.aspectTest();
+		//System.out.println(seif.getTest3().getAge());
 		System.out.println(test3.getSeif().getAge());
 	}
 
