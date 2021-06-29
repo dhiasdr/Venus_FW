@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+   <xs:element name="beans" type="beansType" />
+   <xs:complexType name="beansType">
+      <xs:sequence>
+         <xs:element name="bean" type="beanType" maxOccurs="unbounded" />
+      </xs:sequence>
+   </xs:complexType>
+   <xs:complexType name="beanType">
+      <xs:sequence>
+         <xs:element name="property" type="propertyType" minOccurs="0" maxOccurs="unbounded" />
+         <xs:element name="constructor-arg" type="constructorArgType" minOccurs="0" maxOccurs="unbounded" />
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:string" use="required" />
+      <xs:attribute name="class" type="xs:string" use="required" />
+      <xs:attribute name="scope" type="xs:string"/>
+      <xs:attribute name="singleton" type="xs:boolean"/>
+      <xs:attribute name="factory-method" type="xs:string"/>
+      <xs:attribute name="factory-bean" type="xs:string"/>
+      <xs:attribute name="init-method" type="xs:string"/>
+      <xs:attribute name="destroy-method" type="xs:string"/>
+      <xs:attribute name="aspect" type="xs:boolean"/>
+   </xs:complexType>
+   <xs:complexType name="propertyType">
+      <xs:attribute name="name" type="xs:string" use="required" />
+      <xs:attribute name="ref" type="xs:string" />
+	  <xs:attribute name="type" type="xs:string"/>
+	  <xs:attribute name="value" type="xs:string"/>
+   </xs:complexType>
+      <xs:complexType name="constructorArgType">
+	  <xs:attribute name="type" type="xs:string"/>
+	  <xs:attribute name="value" type="xs:string" use="required"/>
+   </xs:complexType>
+</xs:schema>
