@@ -158,7 +158,8 @@ public class BeansUtility {
 			if (classs.isAnnotationPresent(Bean.class) ||
 					classs.isAnnotationPresent(Service.class) ||
 					classs.isAnnotationPresent(Controller.class) ||
-					classs.isAnnotationPresent(Component.class)) {
+					classs.isAnnotationPresent(Component.class)||
+					classs.isAnnotationPresent(Aspect.class)) {
 
 				BeanDefinition beanDefinition = new BeanDefinition();
 				String className = classs.getSimpleName();
@@ -193,6 +194,11 @@ public class BeansUtility {
 					builder.setInitMethod(controller.initMethod());
 					builder.setFactoryMethod(controller.factoryMethod());
 					builder.setFactoryBean(controller.factoryBean());
+				}
+				else if(classs.isAnnotationPresent(Aspect.class)) {
+					Aspect aspect = (Aspect) classs.getAnnotation(Aspect.class);
+					builder.setScope(SINGLETON_SCOPE);
+					builder.setSingleton(true);
 				}
 				else {
 					Component component = (Component) classs.getAnnotation(Component.class);

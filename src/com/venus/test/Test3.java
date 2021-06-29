@@ -7,7 +7,7 @@ import com.venus.core.annotation.Bean;
 public class Test3 {
 	private String name;
 	private int age=15;
-	private Seif seif;
+	private SeifInterface seif;
 	public String getName() {
 		return name;
 	}
@@ -24,11 +24,11 @@ public class Test3 {
 		this.age = age;
 	}
 
-	public Seif getSeif() {
+	public SeifInterface getSeif() {
 		return seif;
 	}
     @Autowired
-	public void setSeif(Seif seif) {
+	public void setSeif(SeifInterface seif) {
 		this.seif = seif;
 	}
 

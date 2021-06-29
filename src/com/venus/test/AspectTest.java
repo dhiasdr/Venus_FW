@@ -17,13 +17,13 @@ public class AspectTest {
 	/*@After("* * *.ObjectDAOImpl.aspectTest() && @annotation(Override)")
 	public void afterTreatement(){
 		System.out.println("Traitement after");
-	}
+	}*/
 	
-	@Around("* * *.ObjectDAOImpl.aspectTest() && @annotation(Override)")
+	@Around("* * *.Seif.aspectTest() && @annotation(Override)")
 	public void aroundTreatement(){
 		System.out.println("Traitement around");
 	}
-	@AfterReturning("* * *.ObjectDAOImpl.aspectTest() && @annotation(Override)")
+	/*@AfterReturning("* * *.ObjectDAOImpl.aspectTest() && @annotation(Override)")
 	public void afterReturningTreatement(Object obj){
 		System.out.println("Traitement after returning " + obj);
 	}
