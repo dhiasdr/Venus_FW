@@ -32,6 +32,8 @@ import com.venus.core.annotation.Bean;
 import com.venus.core.annotation.Component;
 import com.venus.core.annotation.Controller;
 import com.venus.core.annotation.Service;
+import com.venus.core.behaviour.BehaviourAware;
+import com.venus.core.behaviour.BehaviourPostProcessors;
 import com.venus.core.builder.AnnotationValuesBuilder;
 import com.venus.core.builder.BeanConstructorArgumentBuilder;
 import com.venus.core.builder.BeanDefinitionBuilder;
@@ -136,7 +138,7 @@ public class BeansUtility {
 		for (File file : filesList) {
 			if (file.isFile()) {
 				String path = file.getPath();
-				String packName = path.substring(path.indexOf("src") + 4, path.lastIndexOf('\\'));
+				String packName = path.substring(path.indexOf("src") +14, path.lastIndexOf('\\'));
 				packs.add(packName.replace('\\', '.'));
 			} else if (file.isDirectory()) {
 				allProjectPackages(file.getAbsolutePath(), packs);
@@ -160,7 +162,8 @@ public class BeansUtility {
 					classs.isAnnotationPresent(Service.class) ||
 					classs.isAnnotationPresent(Controller.class) ||
 					classs.isAnnotationPresent(Component.class)||
-					classs.isAnnotationPresent(Aspect.class)) {
+					classs.isAnnotationPresent(Aspect.class) ||
+					Arrays.asList(classs.getInterfaces()).contains(BehaviourPostProcessors.class)) {
 
 				BeanDefinition beanDefinition = new BeanDefinition();
 				String className = classs.getSimpleName();
@@ -196,8 +199,8 @@ public class BeansUtility {
 					builder.setFactoryMethod(controller.factoryMethod());
 					builder.setFactoryBean(controller.factoryBean());
 				}
-				else if(classs.isAnnotationPresent(Aspect.class)) {
-					Aspect aspect = (Aspect) classs.getAnnotation(Aspect.class);
+				else if(classs.isAnnotationPresent(Aspect.class)||
+						Arrays.asList(classs.getInterfaces()).contains(BehaviourPostProcessors.class)) {
 					builder.setScope(SINGLETON_SCOPE);
 					builder.setSingleton(true);
 				}

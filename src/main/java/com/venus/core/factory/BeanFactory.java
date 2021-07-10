@@ -219,7 +219,7 @@ public class BeanFactory implements IBeanFactory {
 						setProperty(bean, referencedBean, beanProperty.getName());
 						//Activate Aspect
 						this.beans.put(beanDefinition.getId(),processAspectTreatmentFor(referencedBean, beanDefinition));
-								BeansDefinitionApplication.markBeanAsInstantiated(beanDefinition);
+						BeansDefinitionApplication.markBeanAsInstantiated(beanDefinition);
 						setBeanProperties(referencedBean, beanDefinition);
 					}
 					} else {
