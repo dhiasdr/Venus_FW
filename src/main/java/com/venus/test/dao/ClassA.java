@@ -40,7 +40,6 @@ public class ClassA implements IClassA, BehaviourAware, BehaviourInit, Behaviour
 	@Override
 	public void initialize() {
 		System.out.println("Initialize method executed");
-
 	}
 
 	@Override

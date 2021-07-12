@@ -26,11 +26,10 @@ public class FieldsMapper {
 
 	}
 
-	public static HashMap<String, FieldDescription> insertintoFieldDescription(
-			Class<?> cls) throws FieldsMapperException {
+	public static HashMap<String, FieldDescription> insertintoFieldDescription(Class<?> cls)
+			throws FieldsMapperException {
 		HashMap<String, FieldDescription> Fields = new HashMap<String, FieldDescription>();
 
-		
 		Field[] listAttributs = cls.getDeclaredFields();
 		for (Field f : listAttributs) {
 			FieldDescription fieldDescription = new FieldDescription();
@@ -40,39 +39,31 @@ public class FieldsMapper {
 			String fieldName = f.getName();
 			fieldDescription.setType(fieldType);
 			if (f.isAnnotationPresent(Id.class)) {
-				if(f.isAnnotationPresent(GeneratedValue.class)&&
-						f.getAnnotation(GeneratedValue.class).strategy()!=null &&
-						f.getAnnotation(GeneratedValue.class).strategy().equals(GenerationType.IDENTITY)) {
+				if (f.isAnnotationPresent(GeneratedValue.class)
+						&& f.getAnnotation(GeneratedValue.class).strategy() != null
+						&& f.getAnnotation(GeneratedValue.class).strategy().equals(GenerationType.IDENTITY)) {
 					fieldDescription.setPrimaryKey(true);
 					fieldDescription.setAutoIncrement(true);
 
 				}
-					
 
 			}
 
-				
 			if (f.getAnnotation(Column.class) != null) {
 				if (f.getAnnotation(Column.class).notNull())
 					fieldDescription.setNotNull(true);
-				if (f.getAnnotation(Column.class).name() != null && !f.getAnnotation(Column.class).name().isEmpty() )
-				fieldName = f.getAnnotation(Column.class).name();
+				if (f.getAnnotation(Column.class).name() != null && !f.getAnnotation(Column.class).name().isEmpty())
+					fieldName = f.getAnnotation(Column.class).name();
 				if (f.getAnnotation(Column.class).unique())
-                 fieldDescription.setUnique(true);
+					fieldDescription.setUnique(true);
 			}
 
-				Fields.put(
-					fieldName,
-					fieldDescription);
+			Fields.put(fieldName, fieldDescription);
 
 		}
-	
+
 		return Fields;
 
 	}
-
-	
-
-	
 
 }

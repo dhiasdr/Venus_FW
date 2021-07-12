@@ -32,7 +32,6 @@ import com.venus.core.annotation.Bean;
 import com.venus.core.annotation.Component;
 import com.venus.core.annotation.Controller;
 import com.venus.core.annotation.Service;
-import com.venus.core.behaviour.BehaviourAware;
 import com.venus.core.behaviour.BehaviourPostProcessors;
 import com.venus.core.builder.AnnotationValuesBuilder;
 import com.venus.core.builder.BeanConstructorArgumentBuilder;
@@ -45,100 +44,134 @@ public class BeansUtility {
 	private static final String XSD_PATH = "src/main/resources/BeansConfiguration.xsd";
 	private static final String PROTOYPE_SCOPE = "prototype";
 	private static final String SINGLETON_SCOPE = "singleton";
-	private static final String PROJECT_RACINE= "src/main/java/";
+	private static final String PROJECT_RACINE = "src/main/java/";
 
 	private static void ValidateBeanConfigurationXML(String fileName) throws VenusConfigurationException {
 		try {
-			SchemaFactory factory = SchemaFactory
-					.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+			SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
 			Schema schema = factory.newSchema(new File(XSD_PATH));
 			Validator validator = schema.newValidator();
-			validator.validate(new StreamSource(new File(BASE_XML_PATH+fileName)));
+			validator.validate(new StreamSource(new File(BASE_XML_PATH + fileName)));
 		} catch (IOException | SAXException e) {
 			throw new VenusConfigurationException(e);
 		}
 	}
+
 	/**
-	 * Checks the XML configuration file and builds all the beans definition by mapping all the configured
-	 * data to beans definition instances
+	 * Checks the XML configuration file and builds all the beans definition by
+	 * mapping all the configured data to beans definition instances
 	 * 
 	 * @param fileName the beans configuration file's name
 	 * @return list of all beans definition
 	 */
-	public static ArrayList<BeanDefinition> parseBeanConfigurationXML(String fileName) throws ParserConfigurationException, SAXException,
-	IOException, VenusConfigurationException{
+	public static ArrayList<BeanDefinition> parseBeanConfigurationXML(String fileName)
+			throws ParserConfigurationException, SAXException, IOException, VenusConfigurationException {
 		ValidateBeanConfigurationXML(fileName);
-        ArrayList<BeanDefinition> beansDefinition = new ArrayList<>();
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder builder = factory.newDocumentBuilder();
-        Document document = builder.parse(new File(BASE_XML_PATH+fileName));
-        NodeList nodeList = document.getDocumentElement().getChildNodes();
-        for (int i = 0; i < nodeList.getLength(); i++) {
-             Node node = nodeList.item(i);
-             if (node.getNodeType() == Node.ELEMENT_NODE) {
-                  Element elem = (Element) node;
-                  ArrayList<BeanProperty> properties= new ArrayList<>();
-                  ArrayList<BeanConstructorArgument> beanConstructorArguments= new ArrayList<>();
+		ArrayList<BeanDefinition> beansDefinition = new ArrayList<>();
+		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+		DocumentBuilder builder = factory.newDocumentBuilder();
+		Document document = builder.parse(new File(BASE_XML_PATH + fileName));
+		NodeList nodeList = document.getDocumentElement().getChildNodes();
+		for (int i = 0; i < nodeList.getLength(); i++) {
+			Node node = nodeList.item(i);
+			if (node.getNodeType() == Node.ELEMENT_NODE) {
+				Element elem = (Element) node;
+				ArrayList<BeanProperty> properties = new ArrayList<>();
+				ArrayList<BeanConstructorArgument> beanConstructorArguments = new ArrayList<>();
 				if (elem.getChildNodes().getLength() > 0) {
 					for (int j = 0; j < elem.getChildNodes().getLength(); j++) {
 						Node deepNode = elem.getChildNodes().item(j);
 						if (deepNode.getNodeType() == Node.ELEMENT_NODE) {
 							Element deepElem = (Element) deepNode;
 							if (deepElem.getNodeName().equals("property")) {
-								properties
-										.add(mapElementToBeanProperty(deepElem));
-							} else if (deepElem.getNodeName().equals(
-									"constructor-arg")) {
-								beanConstructorArguments
-										.add(mapElementToBeanConstructorArgs(deepElem));
+								properties.add(mapElementToBeanProperty(deepElem));
+							} else if (deepElem.getNodeName().equals("constructor-arg")) {
+								beanConstructorArguments.add(mapElementToBeanConstructorArgs(deepElem));
 							}
 						}
 					}
 				}
-                  beansDefinition.add(mapElementToBeanDefinition(elem, properties,beanConstructorArguments));
-             }
-        }
-        return beansDefinition;
+				beansDefinition.add(mapElementToBeanDefinition(elem, properties, beanConstructorArguments));
+			}
+		}
+		return beansDefinition;
 	}
-	private static BeanConstructorArgument mapElementToBeanConstructorArgs(
-			Element element) {
-		   BeanConstructorArgumentBuilder beanConstructorArgumentBuilder= new BeanConstructorArgumentBuilder(); 
-	  	   return beanConstructorArgumentBuilder
-	          	  .setType(element.getAttribute("type")!=null&&!element.getAttribute("type").isEmpty()?element.getAttribute("type"):null)
-	          	  .setValue(element.getAttribute("value")!=null&&!element.getAttribute("value").isEmpty()?(element.getAttribute("value").equals("null")?null:element.getAttribute("value")):null)
-	          	  .finish();
-	}
-	private static BeanProperty mapElementToBeanProperty(Element element){
-	   BeanPropertyBuilder beanPropertyBuilder= new BeanPropertyBuilder(); 
-  	   return beanPropertyBuilder.setName(element.getAttribute("name")!=null&&!element.getAttribute("name").isEmpty()?element.getAttribute("name"):null)
-          	  .setRef(element.getAttribute("ref")!=null&&!element.getAttribute("ref").isEmpty()?element.getAttribute("ref"):null)
-          	  .setType(element.getAttribute("type")!=null&&!element.getAttribute("type").isEmpty()?element.getAttribute("type"):null)
-          	  .setValue(element.getAttribute("value")!=null&&!element.getAttribute("value").isEmpty()?(element.getAttribute("value").equals("null")?null:element.getAttribute("value")):null)
-          	  .finish();
-	}
-	private static BeanDefinition mapElementToBeanDefinition(Element element,ArrayList<BeanProperty> properties, ArrayList<BeanConstructorArgument> beanConstructorArguments){
-		BeanDefinitionBuilder beanDefinitionBuilder = new BeanDefinitionBuilder();
-        return beanDefinitionBuilder
-        		.setClassName(element.getAttribute("class")!=null&&!element.getAttribute("class").isEmpty()? element.getAttribute("class") : null)
-				.setId(element.getAttribute("id") != null && !element.getAttribute("id").isEmpty() ? element.getAttribute("id") : null)
-				.setProperties(properties)
-				.setConstructorArgs(beanConstructorArguments)
-				.setScope(element.getAttribute("scope") != null&& !element.getAttribute("scope").isEmpty() ? element.getAttribute("scope") : null)
-				.setIsSingleton(element.getAttribute("singleton") != null&& !element.getAttribute("singleton").isEmpty() ? Boolean.parseBoolean(element.getAttribute("singleton")): true)
-				.setFactoryMethod(element.getAttribute("factory-method") != null&& !element.getAttribute("factory-method").isEmpty() ? element.getAttribute("factory-method") : null)
-				.setFactoryBean(element.getAttribute("factory-bean") != null&& !element.getAttribute("factory-bean").isEmpty() ? element.getAttribute("factory-bean") : null)
-				.setInitMethod(element.getAttribute("init-method") != null&& !element.getAttribute("init-method").isEmpty() ? element.getAttribute("init-method") : null)
-				.setDestroyMethod(element.getAttribute("destroy-method") != null&& !element.getAttribute("destroy-method").isEmpty() ? element.getAttribute("destroy-method") : null)
-				.setAspect(element.getAttribute("aspect") != null&& !element.getAttribute("aspect").isEmpty() ? Boolean.parseBoolean(element.getAttribute("aspect")): false)
+
+	private static BeanConstructorArgument mapElementToBeanConstructorArgs(Element element) {
+		BeanConstructorArgumentBuilder beanConstructorArgumentBuilder = new BeanConstructorArgumentBuilder();
+		return beanConstructorArgumentBuilder
+				.setType(element.getAttribute("type") != null && !element.getAttribute("type").isEmpty()
+						? element.getAttribute("type")
+						: null)
+				.setValue(element.getAttribute("value") != null && !element.getAttribute("value").isEmpty()
+						? (element.getAttribute("value").equals("null") ? null : element.getAttribute("value"))
+						: null)
 				.finish();
 	}
+
+	private static BeanProperty mapElementToBeanProperty(Element element) {
+		BeanPropertyBuilder beanPropertyBuilder = new BeanPropertyBuilder();
+		return beanPropertyBuilder
+				.setName(element.getAttribute("name") != null && !element.getAttribute("name").isEmpty()
+						? element.getAttribute("name")
+						: null)
+				.setRef(element.getAttribute("ref") != null && !element.getAttribute("ref").isEmpty()
+						? element.getAttribute("ref")
+						: null)
+				.setType(element.getAttribute("type") != null && !element.getAttribute("type").isEmpty()
+						? element.getAttribute("type")
+						: null)
+				.setValue(element.getAttribute("value") != null && !element.getAttribute("value").isEmpty()
+						? (element.getAttribute("value").equals("null") ? null : element.getAttribute("value"))
+						: null)
+				.finish();
+	}
+
+	private static BeanDefinition mapElementToBeanDefinition(Element element, ArrayList<BeanProperty> properties,
+			ArrayList<BeanConstructorArgument> beanConstructorArguments) {
+		BeanDefinitionBuilder beanDefinitionBuilder = new BeanDefinitionBuilder();
+		return beanDefinitionBuilder
+				.setClassName(element.getAttribute("class") != null && !element.getAttribute("class").isEmpty()
+						? element.getAttribute("class")
+						: null)
+				.setId(element.getAttribute("id") != null && !element.getAttribute("id").isEmpty()
+						? element.getAttribute("id")
+						: null)
+				.setProperties(properties).setConstructorArgs(beanConstructorArguments)
+				.setScope(element.getAttribute("scope") != null && !element.getAttribute("scope").isEmpty()
+						? element.getAttribute("scope")
+						: null)
+				.setIsSingleton(
+						element.getAttribute("singleton") != null && !element.getAttribute("singleton").isEmpty()
+								? Boolean.parseBoolean(element.getAttribute("singleton"))
+								: true)
+				.setFactoryMethod(element.getAttribute("factory-method") != null
+						&& !element.getAttribute("factory-method").isEmpty() ? element.getAttribute("factory-method")
+								: null)
+				.setFactoryBean(
+						element.getAttribute("factory-bean") != null && !element.getAttribute("factory-bean").isEmpty()
+								? element.getAttribute("factory-bean")
+								: null)
+				.setInitMethod(
+						element.getAttribute("init-method") != null && !element.getAttribute("init-method").isEmpty()
+								? element.getAttribute("init-method")
+								: null)
+				.setDestroyMethod(element.getAttribute("destroy-method") != null
+						&& !element.getAttribute("destroy-method").isEmpty() ? element.getAttribute("destroy-method")
+								: null)
+				.setAspect(element.getAttribute("aspect") != null && !element.getAttribute("aspect").isEmpty()
+						? Boolean.parseBoolean(element.getAttribute("aspect"))
+						: false)
+				.finish();
+	}
+
 	public static void allProjectPackages(String directoryName, Set<String> packs) {
 		File directory = new File(directoryName);
 		File[] filesList = directory.listFiles();
 		for (File file : filesList) {
 			if (file.isFile()) {
 				String path = file.getPath();
-				String packName = path.substring(path.indexOf("src") +14, path.lastIndexOf('\\'));
+				String packName = path.substring(path.indexOf("src") + 14, path.lastIndexOf('\\'));
 				packs.add(packName.replace('\\', '.'));
 			} else if (file.isDirectory()) {
 				allProjectPackages(file.getAbsolutePath(), packs);
@@ -146,7 +179,7 @@ public class BeansUtility {
 		}
 
 	}
-	
+
 	public static ArrayList<BeanDefinition> getBeansDefinitionWithAnnotation() {
 		Set<Class<? extends Object>> classes = new HashSet<>();
 		Set<String> packagesNames = new HashSet<>();
@@ -158,12 +191,10 @@ public class BeansUtility {
 			classes.addAll(reflections.getSubTypesOf(Object.class));
 		}
 		for (Class classs : classes) {
-			if (classs.isAnnotationPresent(Bean.class) ||
-					classs.isAnnotationPresent(Service.class) ||
-					classs.isAnnotationPresent(Controller.class) ||
-					classs.isAnnotationPresent(Component.class)||
-					classs.isAnnotationPresent(Aspect.class) ||
-					Arrays.asList(classs.getInterfaces()).contains(BehaviourPostProcessors.class)) {
+			if (classs.isAnnotationPresent(Bean.class) || classs.isAnnotationPresent(Service.class)
+					|| classs.isAnnotationPresent(Controller.class) || classs.isAnnotationPresent(Component.class)
+					|| classs.isAnnotationPresent(Aspect.class)
+					|| Arrays.asList(classs.getInterfaces()).contains(BehaviourPostProcessors.class)) {
 
 				BeanDefinition beanDefinition = new BeanDefinition();
 				String className = classs.getSimpleName();
@@ -171,49 +202,45 @@ public class BeansUtility {
 				beanDefinition.setClassName(classs.getName());
 				AnnotationValuesBuilder builder = new AnnotationValuesBuilder();
 				AnnotationValues annotationValues;
-				if(classs.isAnnotationPresent(Bean.class)) {
+				if (classs.isAnnotationPresent(Bean.class)) {
 					Bean bean = (Bean) classs.getAnnotation(Bean.class);
-					builder.setSingleton(bean.isSingleton());
-					builder.setScope(bean.scope());
-					builder.setDestroyMethod(bean.destroyMethod());
-					builder.setInitMethod(bean.initMethod());
-					builder.setFactoryMethod(bean.factoryMethod());
-					builder.setFactoryBean(bean.factoryBean());
+					builder.setSingleton(bean.isSingleton())
+					.setScope(bean.scope())
+					.setDestroyMethod(bean.destroyMethod())
+					.setInitMethod(bean.initMethod())
+					.setFactoryMethod(bean.factoryMethod())
+					.setFactoryBean(bean.factoryBean());
 
-				}
-				else if(classs.isAnnotationPresent(Service.class)) {
+				} else if (classs.isAnnotationPresent(Service.class)) {
 					Service service = (Service) classs.getAnnotation(Service.class);
-					builder.setSingleton(service.isSingleton());
-					builder.setScope(service.scope());
-					builder.setDestroyMethod(service.destroyMethod());
-					builder.setInitMethod(service.initMethod());
-					builder.setFactoryMethod(service.factoryMethod());
-					builder.setFactoryBean(service.factoryBean());
-				}
-				else if(classs.isAnnotationPresent(Controller.class)) {
+					builder.setSingleton(service.isSingleton())
+					.setScope(service.scope())
+					.setDestroyMethod(service.destroyMethod())
+					.setInitMethod(service.initMethod())
+					.setFactoryMethod(service.factoryMethod())
+					.setFactoryBean(service.factoryBean());
+				} else if (classs.isAnnotationPresent(Controller.class)) {
 					Controller controller = (Controller) classs.getAnnotation(Controller.class);
-					builder.setSingleton(controller.isSingleton());
-					builder.setScope(controller.scope());
-					builder.setDestroyMethod(controller.destroyMethod());
-					builder.setInitMethod(controller.initMethod());
-					builder.setFactoryMethod(controller.factoryMethod());
-					builder.setFactoryBean(controller.factoryBean());
-				}
-				else if(classs.isAnnotationPresent(Aspect.class)||
-						Arrays.asList(classs.getInterfaces()).contains(BehaviourPostProcessors.class)) {
-					builder.setScope(SINGLETON_SCOPE);
-					builder.setSingleton(true);
-				}
-				else {
+					builder.setSingleton(controller.isSingleton())
+					.setScope(controller.scope())
+					.setDestroyMethod(controller.destroyMethod())
+					.setInitMethod(controller.initMethod())
+					.setFactoryMethod(controller.factoryMethod())
+					.setFactoryBean(controller.factoryBean());
+				} else if (classs.isAnnotationPresent(Aspect.class)
+						|| Arrays.asList(classs.getInterfaces()).contains(BehaviourPostProcessors.class)) {
+					builder.setScope(SINGLETON_SCOPE)
+					.setSingleton(true);
+				} else {
 					Component component = (Component) classs.getAnnotation(Component.class);
-					builder.setSingleton(component.isSingleton());
-					builder.setScope(component.scope());
-					builder.setDestroyMethod(component.destroyMethod());
-					builder.setInitMethod(component.initMethod());
-					builder.setFactoryMethod(component.factoryMethod());
-					builder.setFactoryBean(component.factoryBean());
+					builder.setSingleton(component.isSingleton())
+					.setScope(component.scope())
+					.setDestroyMethod(component.destroyMethod())
+					.setInitMethod(component.initMethod())
+					.setFactoryMethod(component.factoryMethod())
+					.setFactoryBean(component.factoryBean());
 				}
-				annotationValues= builder.finish();
+				annotationValues = builder.finish();
 				if (annotationValues.isSingleton()) {
 					beanDefinition.setSingleton(true);
 					beanDefinition.setScope(SINGLETON_SCOPE);
@@ -230,13 +257,21 @@ public class BeansUtility {
 				}
 
 				beanDefinition.setFactoryBean(
-						annotationValues.getFactoryBean() != null && !annotationValues.getFactoryBean().isEmpty() ? annotationValues.getFactoryBean() : null);
+						annotationValues.getFactoryBean() != null && !annotationValues.getFactoryBean().isEmpty()
+								? annotationValues.getFactoryBean()
+								: null);
 				beanDefinition.setFactoryMethod(
-						annotationValues.getFactoryMethod() != null && !annotationValues.getFactoryMethod().isEmpty() ? annotationValues.getFactoryMethod() : null);
+						annotationValues.getFactoryMethod() != null && !annotationValues.getFactoryMethod().isEmpty()
+								? annotationValues.getFactoryMethod()
+								: null);
 				beanDefinition.setInitMethod(
-						annotationValues.getInitMethod() != null && !annotationValues.getInitMethod().isEmpty() ? annotationValues.getInitMethod() : null);
+						annotationValues.getInitMethod() != null && !annotationValues.getInitMethod().isEmpty()
+								? annotationValues.getInitMethod()
+								: null);
 				beanDefinition.setDestroyMethod(
-						annotationValues.getDestroyMethod() != null && !annotationValues.getDestroyMethod().isEmpty() ? annotationValues.getDestroyMethod() : null);
+						annotationValues.getDestroyMethod() != null && !annotationValues.getDestroyMethod().isEmpty()
+								? annotationValues.getDestroyMethod()
+								: null);
 
 				ArrayList<BeanProperty> beanProperties = new ArrayList<>();
 				Field[] fields = classs.getDeclaredFields();
@@ -272,7 +307,8 @@ public class BeansUtility {
 
 				}
 				beanDefinition.setProperties(beanProperties);
-				if(classs.isAnnotationPresent(Aspect.class))beanDefinition.setAspect(true);
+				if (classs.isAnnotationPresent(Aspect.class))
+					beanDefinition.setAspect(true);
 				beanDefinitionList.add(beanDefinition);
 			}
 		}

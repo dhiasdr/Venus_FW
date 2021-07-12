@@ -123,28 +123,6 @@ public class BeanFactory implements IBeanFactory {
 			}
 		}
         return bean;
-		/*if (relatedBeanDefinition != null && ((relatedBeanDefinition.getScope() != null
-				&& relatedBeanDefinition.getScope().equals(PROTOYPE_SCOPE)) || !relatedBeanDefinition.isSingleton())) {
-			this.beans.put(prototypeBeanName, bean);
-			for (Iterator<?> beansIterator = BeansDefinitionApplication.getBeansDefinitionApplication()
-					.iterator(); beansIterator.hasNext();) {
-				BeanDefinition beanDefinition = (BeanDefinition) beansIterator.next();
-				for (Iterator<?> beansPropertiesIterator = beanDefinition.getProperties()
-						.iterator(); beansPropertiesIterator.hasNext();) {
-					BeanProperty beanProperty = (BeanProperty) beansPropertiesIterator.next();
-					if (beanProperty.getName().equals(prototypeBeanName)) {
-						Object referencerBean = this.beans.get(beanDefinition.getId());
-						try {
-							setProperty(referencerBean, bean, prototypeBeanName);
-							this.beans.put(beanDefinition.getId(), referencerBean);
-						} catch (VenusPropertyNotFound e) {
-							e.printStackTrace();
-						}
-					}
-
-				}
-			}
-		}*/
 
 	}
 
@@ -164,7 +142,6 @@ public class BeanFactory implements IBeanFactory {
 									|| (findBeanDefinitionByPropertyReference(beanProperty.getRef()).getScope() != null
 											&& findBeanDefinitionByPropertyReference(beanProperty.getRef()).getScope()
 													.equals(PROTOYPE_SCOPE)))) {
-						//
 						if(findBeanDefinitionByPropertyReference(beanProperty.getRef()).isInstantiated()) {
 							Object referencedBean = this.beans.get(beanProperty.getRef());
 							setProperty(bean, referencedBean, beanProperty.getName());
@@ -173,7 +150,6 @@ public class BeanFactory implements IBeanFactory {
 						Object referencedBean = checkBeanForPrototypeScope(beanProperty.getRef());
 						setProperty(bean, referencedBean, beanProperty.getName()); 
 						}
-						//
 					}
 					Object referencedBean = this.beans.get(beanProperty.getRef());
 					setProperty(bean, referencedBean, beanProperty.getName());

@@ -11,7 +11,6 @@ public class PersonneDaoJdbc extends JdbcDaoSupport implements PersonneDao {
 
 	@Override
 	public Personne save(Personne personne) {
-		// TODO Auto-generated method stub
 		int num = (int) getJdbcTemplate().update("insert into Personne(prenom,nom) values (?,?)",new String[] {personne.getNom(),personne.getPrenom()});
 		personne.setId(num);
 		return personne;

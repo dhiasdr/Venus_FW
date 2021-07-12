@@ -12,6 +12,7 @@ public class DataSource {
 	private String url;
 	private String username;
 	private String password;
+	private final static String PROPERTIES_PATH="src/main/resources/application.properties";
 
 	private Map<String, String> properties = new HashMap<String, String>();
 
@@ -19,7 +20,7 @@ public class DataSource {
 		String line = null;
 		Scanner sc = null;
 		try {
-			sc = new Scanner(new File("src/main/resources/application.properties"));
+			sc = new Scanner(new File(PROPERTIES_PATH));
 			while (sc.hasNextLine()) {
 				line = sc.nextLine();
 				String[] parts = line.split("=", 2);

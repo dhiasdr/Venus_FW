@@ -30,13 +30,18 @@ public class BeansDefinitionApplication {
 		createBeansByConfiguration();
 	}
 	/**
-	 * Calls the method createBeansByAnnotation() to build all the beans
+	 * Calls the method createBeansApplicationByAnnotation() to build all the beans
 	 * definition
 	 * 
 	 */
 	public static void createBeansApplicationByAnnotation() {
 		createBeansByAnnotation();
 	}
+	/**
+	 * Calls the method createBeansByAnnotation() to build all the beans
+	 * definition
+	 * 
+	 */
 	private static void createBeansByAnnotation() {
 
 		beansDefinition = BeansUtility.getBeansDefinitionWithAnnotation();

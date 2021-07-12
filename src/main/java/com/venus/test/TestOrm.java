@@ -9,6 +9,5 @@ public class TestOrm {
 	public static void main(String[] args)
 			throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		Orm.generateAndExecuteTableCreationScript();	
-		
 	}
 }

@@ -1,6 +1,6 @@
 package com.venus.test;
 
-public interface SeifInterface {
+public interface PersonInterface {
   public void aspectTest();
   public void destroy();
 }

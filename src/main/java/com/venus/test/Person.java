@@ -5,13 +5,12 @@ import com.venus.core.annotation.Bean;
 import com.venus.core.behaviour.BehaviourAware;
 import com.venus.core.behaviour.BehaviourDestroy;
 import com.venus.core.behaviour.BehaviourInit;
-import com.venus.test.dao.IClassA;
 
-@Bean(factoryBean = "seifFactory", factoryMethod = "getInstance", initMethod="init", destroyMethod="destroy")
-public class Seif implements SeifInterface,BehaviourAware, BehaviourInit, BehaviourDestroy{
+@Bean(factoryBean = "personFactory", factoryMethod = "getInstance", initMethod = "init", destroyMethod = "destroy")
+public class Person implements PersonInterface, BehaviourAware, BehaviourInit, BehaviourDestroy {
 	private String name;
 	private Double age = 19.0;
-	private Test3 test3;
+	//private Car car;
 
 	public String getName() {
 		return name;
@@ -29,19 +28,19 @@ public class Seif implements SeifInterface,BehaviourAware, BehaviourInit, Behavi
 		this.age = age;
 	}
 
-	public Seif() {
+	public Person() {
 		super();
 
 	}
 
-	public Test3 getTest3() {
-		return test3;
+	/*public Car getCar() {
+		return car;
 	}
 
 	@Autowired
-	public void setTest3(Test3 test) {
-		this.test3 = test;
-	}
+	public void setCar(Car car) {
+		this.car = car;
+	}*/
 
 	@Override
 	public void aspectTest() {
@@ -51,19 +50,19 @@ public class Seif implements SeifInterface,BehaviourAware, BehaviourInit, Behavi
 	@Override
 	public void onDestroy() {
 		System.out.println("destroy**");
-		
+
 	}
 
 	@Override
 	public void initialize() {
 		System.out.println("init**");
-		
+
 	}
 
 	@Override
 	public void setBeanName(String beanName) {
-		System.out.println("bean:" +beanName);
-		
+		System.out.println("bean:" + beanName);
+
 	}
 
 	public void init() {

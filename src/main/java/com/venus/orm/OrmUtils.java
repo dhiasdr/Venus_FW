@@ -15,6 +15,7 @@ import com.venus.orm.annotation.Entity;
 import com.venus.orm.exception.FieldsMapperException;
 
 public class OrmUtils {
+	private static final String PROJECT_RACINE= "src/main/java/";
 
 	private static void allProjectPackages(String directoryName, Set<String> packs) {
 		File directory = new File(directoryName);
@@ -39,30 +40,24 @@ public class OrmUtils {
 
 	}
 
-
-
 	public static ArrayList<Class<?>> listOfClassesWithAnotationEntity() {
 		ArrayList<Class<?>> listofEntity = new ArrayList<Class<?>>();
 
 		Set<String> packagesNames = new HashSet<>();
-		allProjectPackages("src/main/java", packagesNames);
+		allProjectPackages(PROJECT_RACINE, packagesNames);
 
 		for (String pn : packagesNames) {
 			Set<Class<? extends Object>> allClasses = getClassesInPackage(pn);
 			for (Class<? extends Object> cls : allClasses) {
-				
-				 
-					if (cls.isAnnotationPresent(Entity.class) && !listofEntity.contains(cls)) {
-						listofEntity.add(cls);
-					}
 
-			
+				if (cls.isAnnotationPresent(Entity.class) && !listofEntity.contains(cls)) {
+					listofEntity.add(cls);
+				}
 
 			}
 		}
 		return listofEntity;
 
 	}
-
 
 }
