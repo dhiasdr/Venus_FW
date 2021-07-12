@@ -48,9 +48,7 @@ public class BeanFactory implements IBeanFactory {
 
 	@Override
 	public boolean beanExists(String name) {
-		if (this.beans.containsKey(name))
-			return true;
-		return false;
+		return this.beans.containsKey(name);
 	}
 
 	@Override
