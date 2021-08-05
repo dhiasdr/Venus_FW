@@ -4,7 +4,7 @@
   <property name="objectDAO" ref="objectDAO"/>
  </bean>
   <bean id="daoFactory" class="com.venus.test.dao.ObjectDAOFactory"/>
-  <bean id="objectDAO" class="com.venus.test.dao.ObjectDAOImpl" factory-bean="daoFactory" factory-method="createInstance" singleton="false">
+  <bean id="objectDAO" class="com.venus.test.dao.ObjectDAOImpl" factory-bean="daoFactory" factory-method="createInstance">
     <property name="classC" ref="classC"/>
   </bean>
   <bean id="classC" class="com.venus.test.dao.ClassC" scope="prototype">

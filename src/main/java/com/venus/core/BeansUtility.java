@@ -165,7 +165,7 @@ public class BeansUtility {
 				.finish();
 	}
 
-	public static void allProjectPackages(String directoryName, Set<String> packs) {
+	private static void allProjectPackages(String directoryName, Set<String> packs) {
 		File directory = new File(directoryName);
 		File[] filesList = directory.listFiles();
 		for (File file : filesList) {
@@ -180,6 +180,14 @@ public class BeansUtility {
 
 	}
 
+	/**
+	 * Checks all classes to retrieve those that have been annotated with Bean,
+	 * Service, Controller, Component, Aspect annotations and classes that implement
+	 * the BehaviourPostProcessors interface to map all the required information and
+	 * build a bean definition list
+	 * 
+	 * @return list of all beans definition
+	 */
 	public static ArrayList<BeanDefinition> getBeansDefinitionWithAnnotation() {
 		Set<Class<? extends Object>> classes = new HashSet<>();
 		Set<String> packagesNames = new HashSet<>();
@@ -204,41 +212,28 @@ public class BeansUtility {
 				AnnotationValues annotationValues;
 				if (classs.isAnnotationPresent(Bean.class)) {
 					Bean bean = (Bean) classs.getAnnotation(Bean.class);
-					builder.setSingleton(bean.isSingleton())
-					.setScope(bean.scope())
-					.setDestroyMethod(bean.destroyMethod())
-					.setInitMethod(bean.initMethod())
-					.setFactoryMethod(bean.factoryMethod())
-					.setFactoryBean(bean.factoryBean());
+					builder.setSingleton(bean.isSingleton()).setScope(bean.scope())
+							.setDestroyMethod(bean.destroyMethod()).setInitMethod(bean.initMethod())
+							.setFactoryMethod(bean.factoryMethod()).setFactoryBean(bean.factoryBean());
 
 				} else if (classs.isAnnotationPresent(Service.class)) {
 					Service service = (Service) classs.getAnnotation(Service.class);
-					builder.setSingleton(service.isSingleton())
-					.setScope(service.scope())
-					.setDestroyMethod(service.destroyMethod())
-					.setInitMethod(service.initMethod())
-					.setFactoryMethod(service.factoryMethod())
-					.setFactoryBean(service.factoryBean());
+					builder.setSingleton(service.isSingleton()).setScope(service.scope())
+							.setDestroyMethod(service.destroyMethod()).setInitMethod(service.initMethod())
+							.setFactoryMethod(service.factoryMethod()).setFactoryBean(service.factoryBean());
 				} else if (classs.isAnnotationPresent(Controller.class)) {
 					Controller controller = (Controller) classs.getAnnotation(Controller.class);
-					builder.setSingleton(controller.isSingleton())
-					.setScope(controller.scope())
-					.setDestroyMethod(controller.destroyMethod())
-					.setInitMethod(controller.initMethod())
-					.setFactoryMethod(controller.factoryMethod())
-					.setFactoryBean(controller.factoryBean());
+					builder.setSingleton(controller.isSingleton()).setScope(controller.scope())
+							.setDestroyMethod(controller.destroyMethod()).setInitMethod(controller.initMethod())
+							.setFactoryMethod(controller.factoryMethod()).setFactoryBean(controller.factoryBean());
 				} else if (classs.isAnnotationPresent(Aspect.class)
 						|| Arrays.asList(classs.getInterfaces()).contains(BehaviourPostProcessors.class)) {
-					builder.setScope(SINGLETON_SCOPE)
-					.setSingleton(true);
+					builder.setScope(SINGLETON_SCOPE).setSingleton(true);
 				} else {
 					Component component = (Component) classs.getAnnotation(Component.class);
-					builder.setSingleton(component.isSingleton())
-					.setScope(component.scope())
-					.setDestroyMethod(component.destroyMethod())
-					.setInitMethod(component.initMethod())
-					.setFactoryMethod(component.factoryMethod())
-					.setFactoryBean(component.factoryBean());
+					builder.setSingleton(component.isSingleton()).setScope(component.scope())
+							.setDestroyMethod(component.destroyMethod()).setInitMethod(component.initMethod())
+							.setFactoryMethod(component.factoryMethod()).setFactoryBean(component.factoryBean());
 				}
 				annotationValues = builder.finish();
 				if (annotationValues.isSingleton()) {

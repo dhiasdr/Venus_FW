@@ -53,11 +53,11 @@ public class ClassA implements IClassA, BehaviourAware, BehaviourInit, Behaviour
 
 	@Override
 	public void onDestroy() {
-		System.out.println("Destroy bean");
+		System.out.println("Destroy bean ClassA");
 	}
 
 	public void destroy() {
-		System.out.println("Destroy bean by destroy-method");
+		System.out.println("Destroy bean ClassA");
 	}
 
 }

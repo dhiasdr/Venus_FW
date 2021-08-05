@@ -53,7 +53,7 @@ public class ClassB implements BehaviourDestroy {
 
 	@Override
 	public void onDestroy() {
-		System.out.println("Destroy !!");
+		System.out.println("Destroy !! ClassB");
 	}
 
 }

@@ -3,6 +3,7 @@ package com.venus.orm;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import com.venus.exception.ProcessException;
 import com.venus.orm.annotation.Table;
 import com.venus.orm.exception.FieldsMapperException;
 
@@ -30,7 +31,7 @@ public class EntityMapper {
 			try {
 				Fields = FieldsMapper.insertintoFieldDescription(cls);
 			} catch (FieldsMapperException e) {
-				e.printStackTrace();
+				throw new ProcessException(e);
 			}
 
 			ed = EntityMapper.insertIntoEntity(cls, Fields);

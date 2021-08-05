@@ -11,6 +11,7 @@ import com.venus.aop.annotation.AfterThrowing;
 import com.venus.aop.annotation.Around;
 import com.venus.aop.annotation.Before;
 import com.venus.aop.exception.VenusAOPFormatNotSupported;
+import com.venus.exception.ProcessException;
 
 public class AOPUtility {
 	private static final String EMPTY_STRING = "";
@@ -24,6 +25,14 @@ public class AOPUtility {
 	private static final String AT_STRING = "@";
 	private static final String AND_STRING = "&&";
 	private static final String OR_STRING = "||";
+	
+	/**
+	 * Checks bean's eligibility to go through the aspect process
+	 * 
+	 * @param bean the object to be checked
+	 * @param aspects list of aspects objects
+	 * @return boolean value resulting from the check
+	 */
 
 	public static boolean isEligibleToAspectProcess(Object bean, ArrayList<Object> aspects) {
 		for (Object aspect : aspects) {
@@ -36,7 +45,7 @@ public class AOPUtility {
 							if (checkExpressionMatching(beanMethod, getExpressionValueFromAnnotation(m)))
 								return true;
 						} catch (VenusAOPFormatNotSupported e) {
-							e.printStackTrace();
+							throw new ProcessException(e);
 						}
 					}
 				}
@@ -59,7 +68,13 @@ public class AOPUtility {
 		} else
 			return null;
 	}
-
+	/**
+	 * Checks if the method passed in parameter matches the pointcut expression
+	 * 
+	 * @param m the method that will be checked if it matches the pointcut expression
+	 * @param expression the pointcut expression that will undergo the matching test
+	 * @return boolean value resulting from the matching check
+	 */
 	public static boolean checkExpressionMatching(Method m, String expression) throws VenusAOPFormatNotSupported {
 		if (expression.contains(AND_STRING) && expression.contains(OR_STRING)) {
 			throw new VenusAOPFormatNotSupported("This format is not supported");
@@ -100,7 +115,7 @@ public class AOPUtility {
 		}
 	}
 
-	public static boolean evaluateExpression(String methodSignature, String expression) {
+	private static boolean evaluateExpression(String methodSignature, String expression) {
 		String strM = EMPTY_STRING;
 		String strE = EMPTY_STRING;
 		if (methodSignature.equals(expression))
@@ -221,13 +236,13 @@ public class AOPUtility {
 		}
 	}
 
-	public static String buildMethodSignature(Method m) {
+	private static String buildMethodSignature(Method m) {
 		String signatureString = m.toGenericString();
 		signatureString = signatureString.replaceAll("java.lang.", EMPTY_STRING);
 		return signatureString;
 	}
 
-	public static ArrayList<String> getMethodAnnotations(Method m) {
+	private static ArrayList<String> getMethodAnnotations(Method m) {
 		ArrayList<String> annotationsList = new ArrayList<>();
 		if (isMethodOverrriden(m)) {
 			String annotationName = "@annotation" + LEFT_BRACKET_STRING + "Override" + RIGHT_BRACKET_STRING;
@@ -241,7 +256,7 @@ public class AOPUtility {
 		return annotationsList;
 	}
 
-	public static void processRightLeftTrim(ArrayList<String> list) {
+	private static void processRightLeftTrim(ArrayList<String> list) {
 		for (int i = 0; i < list.size(); i++) {
 			String word = list.get(i);
 			word = rightLeftTrimForSingleWord(word);
@@ -249,7 +264,7 @@ public class AOPUtility {
 		}
 	}
 
-	public static String rightLeftTrimForSingleWord(String word) {
+	private static String rightLeftTrimForSingleWord(String word) {
 		word = word.replaceAll("^\\s+", EMPTY_STRING);
 		word = word.replaceAll("\\s+$", EMPTY_STRING);
 		return word;

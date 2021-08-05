@@ -7,6 +7,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import com.venus.exception.ProcessException;
+
 public class JdbcTemplate {
 
 	private DataSource dataSource;
@@ -58,7 +60,7 @@ public class JdbcTemplate {
 		try {
 			con.setAutoCommit(false);
 		} catch (SQLException e) {
-			e.printStackTrace();
+			throw new ProcessException(e);
 		}
 	}
 
@@ -116,7 +118,8 @@ public class JdbcTemplate {
 			try {
 				con.close();
 			} catch (SQLException e) {
-				e.printStackTrace();
+				throw new ProcessException(e);
+
 			}
 	}
 

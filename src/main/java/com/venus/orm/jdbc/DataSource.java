@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 
+import com.venus.exception.ProcessException;
+
 public class DataSource {
 	private String driverClassName;
 	private String url;
@@ -34,7 +36,7 @@ public class DataSource {
 			}
 			sc.close();
 		} catch (FileNotFoundException e) {
-			e.printStackTrace();
+			throw new ProcessException(e);
 		}
 		setProperties();
 	}

@@ -16,6 +16,7 @@ import com.venus.core.BeanProperty;
 import com.venus.core.BeansDefinitionApplication;
 import com.venus.core.BehaviourMethodsInvoker;
 import com.venus.core.behaviour.BehaviourDestroy;
+import com.venus.exception.ProcessException;
 import com.venus.exception.VenusBeanConfigurationNotFound;
 import com.venus.exception.VenusPropertyNotFound;
 
@@ -153,7 +154,7 @@ public class BeanFactory implements IBeanFactory {
 					setProperty(bean, referencedBean, beanProperty.getName());
 					}
 				} catch (VenusPropertyNotFound e) {
-					e.printStackTrace();
+					throw new ProcessException(e);
 				}
 			
 			setUpSimpleProperties(bean, beanProperty);
@@ -202,7 +203,7 @@ public class BeanFactory implements IBeanFactory {
 					}
 
 				} catch (VenusBeanConfigurationNotFound | VenusPropertyNotFound e) {
-					e.printStackTrace();
+					throw new ProcessException(e);
 				}
 			}
 			setUpSimpleProperties(bean, beanProperty);
@@ -241,7 +242,7 @@ public class BeanFactory implements IBeanFactory {
 			try {
 				setProperty(bean, object, beanProperty.getName());
 			} catch (VenusPropertyNotFound e) {
-				e.printStackTrace();
+				throw new ProcessException(e);
 			}
 		}
 	}
@@ -309,7 +310,7 @@ public class BeanFactory implements IBeanFactory {
 
 		} catch (SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException
 				| InvocationTargetException | NoSuchMethodException | ClassNotFoundException e) {
-			e.printStackTrace();
+			throw new ProcessException(e);
 		}
 		return object;
 	}
@@ -323,7 +324,7 @@ public class BeanFactory implements IBeanFactory {
 					result = Double.valueOf(value);
 				} catch (IllegalArgumentException
 						| SecurityException e) {
-					e.printStackTrace();
+					throw new ProcessException(e);
 				}
 			}
 			else if(cls.equals(String.class)) {
@@ -331,7 +332,7 @@ public class BeanFactory implements IBeanFactory {
 					result = String.valueOf(value);
 				} catch (IllegalArgumentException
 						| SecurityException e) {
-					e.printStackTrace();
+					throw new ProcessException(e);
 				}
 			}
 			else if(cls.equals(Integer.class)) {
@@ -339,7 +340,7 @@ public class BeanFactory implements IBeanFactory {
 					result = Integer.valueOf(value);
 				} catch (IllegalArgumentException
 						| SecurityException e) {
-					e.printStackTrace();
+					throw new ProcessException(e);
 				}
 			}
 			else if(cls.equals(Long.class)) {
@@ -347,7 +348,7 @@ public class BeanFactory implements IBeanFactory {
 					result = Long.valueOf(value);
 				} catch (IllegalArgumentException
 						| SecurityException e) {
-					e.printStackTrace();
+					throw new ProcessException(e);
 				}
 			}
 			else if(cls.equals(Float.class)) {
@@ -355,7 +356,7 @@ public class BeanFactory implements IBeanFactory {
 					result = Float.valueOf(value);
 				} catch (IllegalArgumentException
 						| SecurityException e) {
-					e.printStackTrace();
+					throw new ProcessException(e);
 				}
 			}
 			else if(cls.equals(Boolean.class)) {
@@ -363,7 +364,7 @@ public class BeanFactory implements IBeanFactory {
 					result = Boolean.valueOf(value);
 				} catch (IllegalArgumentException
 						| SecurityException e) {
-					e.printStackTrace();
+					throw new ProcessException(e);
 				}
 			}
 			else if(cls.equals(Short.class)) {
@@ -371,7 +372,7 @@ public class BeanFactory implements IBeanFactory {
 					result = Short.valueOf(value);
 				} catch (IllegalArgumentException
 						| SecurityException e) {
-					e.printStackTrace();
+					throw new ProcessException(e);
 				}
 			}
 			else if(cls.equals(Byte.class)) {
@@ -379,11 +380,11 @@ public class BeanFactory implements IBeanFactory {
 					result = Byte.valueOf(value);
 				} catch (IllegalArgumentException
 						| SecurityException e) {
-					e.printStackTrace();
+					throw new ProcessException(e);
 				}
 			}
 		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
+			throw new ProcessException(e);
 		}
 		return result;
 	}
@@ -432,7 +433,7 @@ public class BeanFactory implements IBeanFactory {
 
 		} catch (NoSuchMethodException | SecurityException | ClassNotFoundException | IllegalAccessException
 				| IllegalArgumentException | InvocationTargetException e) {
-			e.printStackTrace();
+			throw new ProcessException(e);
 		}
 		return object;
 
@@ -456,7 +457,7 @@ public class BeanFactory implements IBeanFactory {
 				setter.invoke(mainObject, new Object[] { property });
 			} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException
 					| InvocationTargetException e) {
-				e.printStackTrace();
+				throw new ProcessException(e);
 			}
 
 		} else {
@@ -587,9 +588,9 @@ public class BeanFactory implements IBeanFactory {
 				return Arrays.asList(Class.forName(beanDef.getClassName()).getInterfaces())
 						.contains(BehaviourDestroy.class) || beanDef.getDestroyMethod() != null;
 			} catch (ClassNotFoundException e) {
-				e.printStackTrace();
+				throw new ProcessException(e);
 			}
-			return false;
+			//return false;
 		}).forEach(beanDef -> {
 			BehaviourMethodsInvoker.invokeOnShutDownContainerFor(this.beans.get(beanDef.getId()), beanDef.getId(),
 					beanDef.getDestroyMethod());

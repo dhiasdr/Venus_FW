@@ -10,14 +10,15 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.xml.sax.SAXException;
 
 import com.venus.core.behaviour.BehaviourPostProcessors;
+import com.venus.exception.ProcessException;
 import com.venus.exception.VenusConfigurationException;
 
 public class BeansDefinitionApplication {
 	private static String beansConfigurationFileName;
 	private static ArrayList<BeanDefinition> beansDefinition;
-	private static ArrayList<String> postProcessorBeansNames= new ArrayList<>();
-	private static ArrayList<String> aspectBeansNames= new ArrayList<>();
-	private static ArrayList<String> technicalBeansNames= new ArrayList<>();
+	private static ArrayList<String> postProcessorBeansNames = new ArrayList<>();
+	private static ArrayList<String> aspectBeansNames = new ArrayList<>();
+	private static ArrayList<String> technicalBeansNames = new ArrayList<>();
 
 	/**
 	 * Calls the method createBeansByConfiguration() to build all the beans
@@ -29,6 +30,7 @@ public class BeansDefinitionApplication {
 		beansConfigurationFileName = configurationFileName;
 		createBeansByConfiguration();
 	}
+
 	/**
 	 * Calls the method createBeansApplicationByAnnotation() to build all the beans
 	 * definition
@@ -37,26 +39,24 @@ public class BeansDefinitionApplication {
 	public static void createBeansApplicationByAnnotation() {
 		createBeansByAnnotation();
 	}
-	/**
-	 * Calls the method createBeansByAnnotation() to build all the beans
-	 * definition
-	 * 
-	 */
+
 	private static void createBeansByAnnotation() {
 
 		beansDefinition = BeansUtility.getBeansDefinitionWithAnnotation();
 		prioritizeTechnicalBeans();
-	
-}
+
+	}
+
 	/**
 	 * Returns all the beans definition for all beans configured in the file
 	 * 
 	 * @return list of beans definition
 	 */
 	public static ArrayList<BeanDefinition> getBeansDefinitionApplication() {
-		if (beansDefinition == null && beansConfigurationFileName!=null && !beansConfigurationFileName.isEmpty())
+		if (beansDefinition == null && beansConfigurationFileName != null && !beansConfigurationFileName.isEmpty())
 			createBeansByConfiguration();
-		else if(beansDefinition==null)createBeansByAnnotation();
+		else if (beansDefinition == null)
+			createBeansByAnnotation();
 		return beansDefinition;
 	}
 
@@ -65,7 +65,7 @@ public class BeansDefinitionApplication {
 			beansDefinition = BeansUtility.parseBeanConfigurationXML(beansConfigurationFileName);
 			prioritizeTechnicalBeans();
 		} catch (ParserConfigurationException | SAXException | IOException | VenusConfigurationException e) {
-			e.printStackTrace();
+			throw new ProcessException(e);
 		}
 	}
 
@@ -86,11 +86,11 @@ public class BeansDefinitionApplication {
 		ArrayList<BeanDefinition> priortizedBeans = new ArrayList<>();
 		for (Iterator<?> beansDefinitionItr = beansDefinition.iterator(); beansDefinitionItr.hasNext();) {
 			BeanDefinition beanDefinition = (BeanDefinition) beansDefinitionItr.next();
-			//treat the case of aspect bean
-            if(beanDefinition.isAspect()) {
-            	aspectBeansNames.add(beanDefinition.getId());
-            	priortizedBeans.add(beanDefinition); 
-            }
+			// treat the case of aspect bean
+			if (beanDefinition.isAspect()) {
+				aspectBeansNames.add(beanDefinition.getId());
+				priortizedBeans.add(beanDefinition);
+			}
 		}
 		for (Iterator<?> beansDefinitionItr = beansDefinition.iterator(); beansDefinitionItr.hasNext();) {
 			BeanDefinition beanDefinition = (BeanDefinition) beansDefinitionItr.next();
@@ -99,8 +99,8 @@ public class BeansDefinitionApplication {
 				priortizedBeans.add(beanDefinition);
 			}
 		}
-    	technicalBeansNames.addAll(aspectBeansNames);
-    	technicalBeansNames.addAll(postProcessorBeansNames);
+		technicalBeansNames.addAll(aspectBeansNames);
+		technicalBeansNames.addAll(postProcessorBeansNames);
 		for (Iterator<?> beansDefinitionItr = beansDefinition.iterator(); beansDefinitionItr.hasNext();) {
 			BeanDefinition beanDefinition = (BeanDefinition) beansDefinitionItr.next();
 			if (beanDefinition.getFactoryBean() != null) {
@@ -110,7 +110,7 @@ public class BeansDefinitionApplication {
 		for (Iterator<?> beansDefinitionItr = beansDefinition.iterator(); beansDefinitionItr.hasNext();) {
 			BeanDefinition beanDefinition = (BeanDefinition) beansDefinitionItr.next();
 			if (factoriesBeansName.contains(beanDefinition.getId())) {
-            	technicalBeansNames.add(beanDefinition.getId());
+				technicalBeansNames.add(beanDefinition.getId());
 				priortizedBeans.add(beanDefinition);
 			}
 		}
@@ -119,7 +119,6 @@ public class BeansDefinitionApplication {
 			priortizedBeans.addAll(beansDefinition);
 			beansDefinition = priortizedBeans;
 		}
-       System.out.println(beansDefinition);
 	}
 
 	private static boolean isPostProcessorBean(BeanDefinition beanDef) {
@@ -129,7 +128,7 @@ public class BeansDefinitionApplication {
 				return true;
 			}
 		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
+			throw new ProcessException(e);
 		}
 
 		return false;
@@ -143,9 +142,21 @@ public class BeansDefinitionApplication {
 	public static ArrayList<String> getPostProcessorBeansNames() {
 		return postProcessorBeansNames;
 	}
+
+	/**
+	 * Returns all aspect beans names existing in the container
+	 * 
+	 * @return list of all aspect beans
+	 */
 	public static ArrayList<String> getAspectBeansNames() {
 		return aspectBeansNames;
 	}
+
+	/**
+	 * Returns all technical beans names existing in the container
+	 * 
+	 * @return list of all technical beans
+	 */
 	public static ArrayList<String> getTechnicalBeansNames() {
 		return technicalBeansNames;
 	}

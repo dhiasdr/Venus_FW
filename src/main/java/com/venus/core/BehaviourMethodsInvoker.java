@@ -13,6 +13,7 @@ import com.venus.core.behaviour.BehaviourDestroy;
 import com.venus.core.behaviour.BehaviourInit;
 import com.venus.core.behaviour.BehaviourPostProcessors;
 import com.venus.core.behaviour.Ordered;
+import com.venus.exception.ProcessException;
 
 public class BehaviourMethodsInvoker {
 	private static ArrayList<Object> containerPostProcessorBeans;
@@ -41,7 +42,7 @@ public class BehaviourMethodsInvoker {
 				method.invoke(bean, beanName);
 			} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException
 					| InvocationTargetException e) {
-				e.printStackTrace();
+				throw new ProcessException(e);
 			}
 		}
 		if (containerPostProcessorBeans != null) {
@@ -54,7 +55,7 @@ public class BehaviourMethodsInvoker {
 				method.invoke(bean);
 			} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException
 					| InvocationTargetException e) {
-				e.printStackTrace();
+				throw new ProcessException(e);
 			}
 		}
 		if (interfaces.contains(BehaviourInit.class)) {
@@ -63,7 +64,7 @@ public class BehaviourMethodsInvoker {
 				method.invoke(bean);
 			} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException
 					| InvocationTargetException e) {
-				e.printStackTrace();
+				throw new ProcessException(e);
 			}
 		}
 		if (containerPostProcessorBeans != null) {
@@ -92,7 +93,7 @@ public class BehaviourMethodsInvoker {
 				method.invoke(bean);
 			} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException
 					| InvocationTargetException e) {
-				e.printStackTrace();
+				throw new ProcessException(e);
 			}
 		}
 		if (interfaces.contains(BehaviourDestroy.class)) {
@@ -101,7 +102,7 @@ public class BehaviourMethodsInvoker {
 				method.invoke(bean);
 			} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException
 					| InvocationTargetException e) {
-				e.printStackTrace();
+				throw new ProcessException(e);
 			}
 		}
 	}
@@ -132,7 +133,7 @@ public class BehaviourMethodsInvoker {
 				method.invoke(postProccesorBean, postProcessorParameterValues);
 			} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException
 					| InvocationTargetException e) {
-				e.printStackTrace();
+				throw new ProcessException(e);
 			}
 		});
 
@@ -159,7 +160,7 @@ public class BehaviourMethodsInvoker {
 						postProcc1Order = (int) postProcc1Method.invoke(postProcc1);
 					} catch (NoSuchMethodException | SecurityException | IllegalAccessException
 							| IllegalArgumentException | InvocationTargetException e) {
-						e.printStackTrace();
+						throw new ProcessException(e);
 					}
 				}
 				if (Arrays.asList(postProcc2.getClass().getInterfaces()).contains(Ordered.class)) {
@@ -168,7 +169,7 @@ public class BehaviourMethodsInvoker {
 						postProcc2Order = (int) postProcc2Method.invoke(postProcc2);
 					} catch (NoSuchMethodException | SecurityException | IllegalAccessException
 							| IllegalArgumentException | InvocationTargetException e) {
-						e.printStackTrace();
+						throw new ProcessException(e);
 					}
 				}
 				return postProcc1Order - postProcc2Order;

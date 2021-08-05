@@ -1,1 +1,3 @@
 /target/
+/src/main/java/com/venus/orm/jdbc/Application.java
+/src/main/java/com/venus/test/*
