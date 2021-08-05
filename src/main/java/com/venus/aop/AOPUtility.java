@@ -30,7 +30,7 @@ public class AOPUtility {
 	 * Checks bean's eligibility to go through the aspect process
 	 * 
 	 * @param bean the object to be checked
-	 * @param aspects list of aspects objects
+	 * @param aspects list of aspect objects
 	 * @return boolean value resulting from the check
 	 */
 
